@@ -127,7 +127,7 @@ func PrepareChecker(
 	return checker, must
 }
 
-func PrepareInterpreter(filename string) (*interpreter.Interpreter, *sema.Checker, func(error)) {
+func PrepareInterpreter(filename string, debugger *interpreter.Debugger) (*interpreter.Interpreter, *sema.Checker, func(error)) {
 
 	codes := map[common.LocationID]string{}
 
@@ -149,6 +149,7 @@ func PrepareInterpreter(filename string) (*interpreter.Interpreter, *sema.Checke
 			defer func() { uuid++ }()
 			return uuid, nil
 		}),
+		interpreter.WithDebugger(debugger),
 	)
 	must(err)
 
