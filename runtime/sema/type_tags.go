@@ -22,70 +22,96 @@ type TypeTag uint64
 
 const NeverTypeTag TypeTag = 0
 
-const UInt8Tag TypeTag = 1
-const UInt16Tag = UInt8Tag << 1
-const UInt32Tag = UInt16Tag << 1
-const UInt64Tag = UInt32Tag << 1
-const UInt128Tag = UInt64Tag << 1
-const UInt256Tag = UInt128Tag << 1
+const (
+	UInt8Tag TypeTag = 1 << iota
+	UInt16Tag
+	UInt32Tag
+	UInt64Tag
+	UInt128Tag
+	UInt256Tag
 
-const Int8Tag = UInt256Tag << 1
-const Int16Tag = Int8Tag << 1
-const Int32Tag = Int16Tag << 1
-const Int64Tag = Int32Tag << 1
-const Int128Tag = Int64Tag << 1
-const Int256Tag = Int128Tag << 1
+	Int8Tag
+	Int16Tag
+	Int32Tag
+	Int64Tag
+	Int128Tag
+	Int256Tag
 
-// reserve 10 bits for float and word
-const IntTag = Int256Tag << 10
-const UIntTag = IntTag << 1
-const StringTag = UIntTag << 1
-const CharacterTag = StringTag << 1
-const BoolTag = CharacterTag << 1
-const NilTag = BoolTag << 1
-const VoidTag = NilTag << 1
-const AddressTag = VoidTag << 1
-const MetaTag = AddressTag << 1
-const AnyStructTag = MetaTag << 1
-const AnyResourceTag = AnyStructTag << 1
-const AnyTag = AnyResourceTag << 1
+	Word8Tag
+	Word16Tag
+	Word32Tag
+	Word64Tag
 
-const PathTag = AnyTag << 1
-const StoragePathTag = PathTag << 1
-const CapabilityPathTag = StoragePathTag << 1
-const PublicPathTag = CapabilityPathTag << 1
-const PrivatePathTag = PublicPathTag << 1
+	Fix64Tag
+	UFix64Tag
 
-const ArrayTag = PrivatePathTag << 1
-const DictionaryTag = ArrayTag << 1
-const CompositeTag = DictionaryTag << 1
-const ReferenceTag = CompositeTag << 1
-const ResourceTag = ReferenceTag << 1
+	IntTag
+	UIntTag
+	StringTag
+	CharacterTag
+	BoolTag
+	NilTag
+	VoidTag
+	AddressTag
+	MetaTag
+	AnyStructTag
+	AnyResourceTag
+	AnyTag
 
-const OptionalTag = ResourceTag << 1
-const GenericTag = OptionalTag << 1
-const FunctionTag = GenericTag << 1
-const InterfaceTag = FunctionTag << 1
-const TransactionTag = InterfaceTag << 1
-const RestrictedTag = TransactionTag << 1
-const CapabilityTag = RestrictedTag << 1
+	PathTag
+	StoragePathTag
+	CapabilityPathTag
+	PublicPathTag
+	PrivatePathTag
 
-const InvalidTag TypeTag = 1 << 62
+	ArrayTag
+	DictionaryTag
+	CompositeTag
+	ReferenceTag
+	ResourceTag
+
+	OptionalTag
+	GenericTag
+	FunctionTag
+	InterfaceTag
+	TransactionTag
+	RestrictedTag
+	CapabilityTag
+
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	InvalidTag
+)
 
 // Super types
+const (
+	SignedIntTag = IntTag | Int8Tag | Int16Tag | Int32Tag | Int64Tag | Int128Tag | Int256Tag
 
-const SignedIntTag = IntTag | Int8Tag | Int16Tag | Int32Tag | Int64Tag | Int128Tag | Int256Tag
+	UnsignedIntTag = UIntTag | UInt8Tag | UInt16Tag | UInt32Tag | UInt64Tag | UInt128Tag | UInt256Tag
 
-const UnsignedIntTag = UIntTag | UInt8Tag | UInt16Tag | UInt32Tag | UInt64Tag | UInt128Tag | UInt256Tag
+	IntSuperTypeTag = SignedIntTag | UnsignedIntTag
 
-const IntSuperTypeTag = SignedIntTag | UnsignedIntTag
+	AnyStructSuperTypeTag = AnyStructTag | NeverTypeTag | IntSuperTypeTag | StringTag | ArrayTag |
+		DictionaryTag | CompositeTag | ReferenceTag | NilTag
 
-const AnyStructSuperTypeTag = AnyStructTag | NeverTypeTag | IntSuperTypeTag | StringTag | ArrayTag |
-	DictionaryTag | CompositeTag | ReferenceTag | NilTag
+	AnyResourceSuperTypeTag = AnyResourceTag | ResourceTag
 
-const AnyResourceSuperTypeTag = AnyResourceTag | ResourceTag
-
-const AnySuperTypeTag = AnyResourceSuperTypeTag | AnyStructSuperTypeTag
+	AnySuperTypeTag = AnyResourceSuperTypeTag | AnyStructSuperTypeTag
+)
 
 // Methods
 
