@@ -5115,6 +5115,14 @@ func TestEncodeDecodeDictionaryDeferred(t *testing.T) {
 			0xf5,
 			// array, 0 items follow
 			0x80,
+			// dictionary type tag
+			0xd8, cborTagDictionaryStaticType,
+			// array, 2 items follow
+			0x82,
+			// key type
+			0xd8, cborTagPrimitiveStaticType, byte(PrimitiveStaticTypeAnyStruct),
+			// value type
+			0xd8, cborTagPrimitiveStaticType, byte(PrimitiveStaticTypeAnyResource),
 		}
 
 		version3Encoded := []byte{
@@ -5186,8 +5194,8 @@ func TestEncodeDecodeDictionaryDeferred(t *testing.T) {
 		encoded := []byte{
 			// tag
 			0xd8, cborTagDictionaryValue,
-			// array, 2 items follow
-			0x82,
+			// array, 3 items follow
+			0x83,
 
 			// cbor Array Value tag
 			0xd8, cborTagArrayValue,
@@ -5214,6 +5222,14 @@ func TestEncodeDecodeDictionaryDeferred(t *testing.T) {
 			0x78, 0x79, 0x7a,
 			// false
 			0xf4,
+			// dictionary type tag
+			0xd8, cborTagDictionaryStaticType,
+			// array, 2 items follow
+			0x82,
+			// key type
+			0xd8, cborTagPrimitiveStaticType, byte(PrimitiveStaticTypeAnyStruct),
+			// value type
+			0xd8, cborTagPrimitiveStaticType, byte(PrimitiveStaticTypeAnyStruct),
 		}
 
 		version3Encoded := []byte{
@@ -5223,8 +5239,8 @@ func TestEncodeDecodeDictionaryDeferred(t *testing.T) {
 			0xa2,
 			// key 0
 			0x0,
-			// array, 2 items follow
-			0x82,
+			// array, 3 items follow
+			0x83,
 			// UTF-8 string, length 4
 			0x64,
 			// t, e, s, t
