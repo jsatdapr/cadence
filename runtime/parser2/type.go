@@ -460,6 +460,9 @@ func defineRestrictedOrDictionaryType() {
 	setTypeMetaLeftDenotation(
 		lexer.TokenBraceOpen,
 		func(p *parser, rightBindingPower int, left ast.Type) (result ast.Type, done bool) {
+			if rightBindingPower >= typeLeftBindingPowerRestriction {
+				return left, true
+			}
 
 			// Start buffering before skipping the `{` token,
 			// so it can be replayed in case the
@@ -473,15 +476,6 @@ func defineRestrictedOrDictionaryType() {
 			// The buffered tokens are replayed to allow them to be re-parsed.
 
 			if p.current.Is(lexer.TokenSpace) {
-				p.replayBuffered()
-				return left, true
-			}
-
-			// It was determined that a restricted type is parsed.
-			// Still, it should have maybe not been parsed if the right binding power
-			// was higher. In that case, replay the buffered tokens and stop.
-
-			if rightBindingPower >= typeLeftBindingPowerRestriction {
 				p.replayBuffered()
 				return left, true
 			}
