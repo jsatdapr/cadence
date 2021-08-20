@@ -23,6 +23,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/onflow/cadence/runtime/ast"
+	"github.com/onflow/cadence/runtime/errors"
 )
 
 type position struct {
@@ -153,7 +154,7 @@ func (l *lexer) next() rune {
 // Can be called only once per call of next.
 func (l *lexer) backupOne() {
 	if !l.canBackup {
-		panic("second backup")
+		panic(errors.NewUnreachableErrorf("second backup"))
 	}
 	l.canBackup = false
 

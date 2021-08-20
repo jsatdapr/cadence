@@ -21,6 +21,7 @@ package parser2
 import (
 	"fmt"
 	"io/ioutil"
+	"runtime"
 	"strings"
 
 	"github.com/onflow/cadence/runtime/ast"
@@ -59,11 +60,16 @@ func Parse(input string, parse func(*parser) interface{}) (result interface{}, e
 	return ParseTokenStream(tokens, parse)
 }
 
-func ParseTokenStream(tokens lexer.TokenStream, parse func(*parser) interface{}) (result interface{}, errors []error) {
+func ParseTokenStream(tokens lexer.TokenStream, parse func(*parser) interface{}) (result interface{}, errs []error) {
 	p := &parser{tokens: tokens}
 
 	defer func() {
 		if r := recover(); r != nil {
+			switch r := r.(type) {
+			case runtime.Error, errors.UnreachableError, *errors.UnreachableError:
+				panic(r) // Don't recover from supposedly impossible situations
+			}
+
 			err, ok := r.(error)
 			if !ok {
 				err = fmt.Errorf("parser: %v", r)
@@ -72,11 +78,11 @@ func ParseTokenStream(tokens lexer.TokenStream, parse func(*parser) interface{})
 			p.report(err)
 
 			result = nil
-			errors = p.errors
+			errs = p.errors
 		}
 
 		for _, bufferedErrors := range p.bufferedErrors {
-			errors = append(errors, bufferedErrors...)
+			errs = append(errs, bufferedErrors...)
 		}
 	}()
 

@@ -32,15 +32,20 @@ import (
 // For program errors, see interpreter/errors.go
 //
 type UnreachableError struct {
-	Stack []byte
+	Stack   []byte
+	Message string
 }
 
 func (e UnreachableError) Error() string {
-	return fmt.Sprintf("unreachable\n%s", e.Stack)
+	return fmt.Sprintf("unreachable (%s)\n%s", e.Message, e.Stack)
 }
 
 func NewUnreachableError() *UnreachableError {
 	return &UnreachableError{Stack: debug.Stack()}
+}
+
+func NewUnreachableErrorf(format string, args ...interface{}) *UnreachableError {
+	return &UnreachableError{Stack: debug.Stack(), Message: fmt.Sprintf(format, args...)}
 }
 
 // SecondaryError

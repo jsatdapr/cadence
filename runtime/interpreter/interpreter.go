@@ -1021,6 +1021,9 @@ func (interpreter *Interpreter) RecoverErrors(onError func(error)) {
 		case goRuntime.Error, ExternalError:
 			// Don't recover Go's or external panics
 			panic(r)
+		case errors.UnreachableError, *errors.UnreachableError:
+			// Don't recover from supposedly impossible situations
+			panic(r)
 		case error:
 			err = r
 		default:
