@@ -182,7 +182,7 @@ func (p *parser) mustOne(tokenType lexer.TokenType) lexer.Token {
 
 func (p *parser) mustOneString(tokenType lexer.TokenType, string string) lexer.Token {
 	t := p.current
-	if !t.IsString(tokenType, string) {
+	if tokenType != lexer.TokenIdentifier || !t.IsString(string) {
 		panic(fmt.Errorf("expected token %s with string value %s", tokenType, string))
 	}
 	p.next()

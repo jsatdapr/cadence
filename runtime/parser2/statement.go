@@ -266,11 +266,11 @@ func parseIfStatement(p *parser) *ast.IfStatement {
 		parseNested := false
 
 		p.skipSpaceAndComments(true)
-		if p.current.IsString(lexer.TokenIdentifier, keywordElse) {
+		if p.current.IsString(keywordElse) {
 			p.next()
 
 			p.skipSpaceAndComments(true)
-			if p.current.IsString(lexer.TokenIdentifier, keywordIf) {
+			if p.current.IsString(keywordIf) {
 				parseNested = true
 			} else {
 				elseBlock = parseBlock(p)
@@ -344,7 +344,7 @@ func parseForStatement(p *parser) *ast.ForStatement {
 
 	p.skipSpaceAndComments(true)
 
-	if p.current.IsString(lexer.TokenIdentifier, keywordIn) {
+	if p.current.IsString(keywordIn) {
 		p.report(fmt.Errorf(
 			"expected identifier, got keyword %q",
 			keywordIn,
@@ -369,7 +369,7 @@ func parseForStatement(p *parser) *ast.ForStatement {
 		identifier = firstValue
 	}
 
-	if !p.current.IsString(lexer.TokenIdentifier, keywordIn) {
+	if !p.current.IsString(keywordIn) {
 		p.report(fmt.Errorf(
 			"expected keyword %q, got %s",
 			keywordIn,
@@ -416,7 +416,7 @@ func parseFunctionBlock(p *parser) *ast.FunctionBlock {
 	p.skipSpaceAndComments(true)
 
 	var preConditions *ast.Conditions
-	if p.current.IsString(lexer.TokenIdentifier, keywordPre) {
+	if p.current.IsString(keywordPre) {
 		p.next()
 		conditions := parseConditions(p, ast.ConditionKindPre)
 		preConditions = &conditions
@@ -425,7 +425,7 @@ func parseFunctionBlock(p *parser) *ast.FunctionBlock {
 	p.skipSpaceAndComments(true)
 
 	var postConditions *ast.Conditions
-	if p.current.IsString(lexer.TokenIdentifier, keywordPost) {
+	if p.current.IsString(keywordPost) {
 		p.next()
 		conditions := parseConditions(p, ast.ConditionKindPost)
 		postConditions = &conditions

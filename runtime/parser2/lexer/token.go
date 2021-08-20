@@ -32,13 +32,9 @@ func (t Token) Is(ty TokenType) bool {
 	return t.Type == ty
 }
 
-func (t Token) IsString(ty TokenType, s string) bool {
-	if !t.Is(ty) {
+func (t Token) IsString(s string) bool {
+	if !t.Is(TokenIdentifier) {
 		return false
 	}
-	v, ok := t.Value.(string)
-	if !ok {
-		return false
-	}
-	return v == s
+	return t.Value.(string) == s
 }
