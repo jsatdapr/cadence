@@ -419,6 +419,9 @@ func defineRestrictedOrDictionaryType() {
 						restrictedType.Restrictions = append(restrictedType.Restrictions, nominalType)
 
 					default:
+						if firstType != nil {
+							panic(errors.NewUnreachableErrorf("firstType != nil"))
+						}
 						firstType = ty
 					}
 				}
