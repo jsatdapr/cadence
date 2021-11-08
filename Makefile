@@ -27,10 +27,12 @@ COVERPKGS := $(shell go list ./... | grep -v /cmd | grep -v /runtime/test | tr "
 test-with-coverage: COVERAGE=-coverprofile=coverage.txt -covermode=atomic -coverpkg $(COVERPKGS)
 test-with-coverage: test
 
+J ?= 8
+
 .PHONY: test
 test:
 	# test all packages
-	GO111MODULE=on go test -parallel 8 -race $(COVERAGE) ./...
+	GO111MODULE=on go test -parallel $(J) -race $(COVERAGE) ./...
 	# remove coverage of empty functions from report
 	touch coverage.txt && sed -i -e 's/^.* 0 0$$//' coverage.txt
 	cd ./languageserver && make test
