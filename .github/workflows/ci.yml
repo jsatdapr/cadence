@@ -36,7 +36,7 @@ jobs:
     - name: Build
       run: make build
     - name: Test
-      run: make test
+      run: make test-with-coverage
     - name: Upload coverage report
       uses: codecov/codecov-action@v1
       with:
