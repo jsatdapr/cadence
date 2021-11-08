@@ -23,12 +23,16 @@ PATH := $(PATH):$(GOPATH)/bin
 
 COVERPKGS := $(shell go list ./... | grep -v /cmd | grep -v /runtime/test | tr "\n" "," | sed 's/,*$$//')
 
+.PHONY: test-with-coverage
+test-with-coverage: COVERAGE=-coverprofile=coverage.txt -covermode=atomic -coverpkg $(COVERPKGS)
+test-with-coverage: test
+
 .PHONY: test
 test:
 	# test all packages
-	GO111MODULE=on go test -coverprofile=coverage.txt -covermode=atomic -parallel 8 -race -coverpkg $(COVERPKGS) ./...
+	GO111MODULE=on go test -parallel 8 -race $(COVERAGE) ./...
 	# remove coverage of empty functions from report
-	sed -i -e 's/^.* 0 0$$//' coverage.txt
+	touch coverage.txt && sed -i -e 's/^.* 0 0$$//' coverage.txt
 	cd ./languageserver && make test
 
 .PHONY: build
