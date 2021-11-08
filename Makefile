@@ -32,7 +32,7 @@ J ?= 8
 .PHONY: test
 test:
 	# test all packages
-	GO111MODULE=on go test -parallel $(J) -race $(COVERAGE) ./...
+	GO111MODULE=on go test -parallel $(J) -race $(COVERAGE) -test.count=1 ./...
 	# remove coverage of empty functions from report
 	touch coverage.txt && sed -i -e 's/^.* 0 0$$//' coverage.txt
 	cd ./languageserver && make test
