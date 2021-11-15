@@ -38,6 +38,9 @@ func runByteSample(data []byte) int {
 	if err != nil {
 		return 0
 	}
+	if program == nil || len(program.Declarations()) == 0 {
+		return -1
+	}
 
 	checker, err := sema.NewChecker(
 		program,
