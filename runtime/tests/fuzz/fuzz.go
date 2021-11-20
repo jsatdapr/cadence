@@ -21,6 +21,7 @@ package fuzz
 import (
 	"unicode/utf8"
 
+	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/cadence/runtime/parser2"
 	"github.com/onflow/cadence/runtime/sema"
 	"github.com/onflow/cadence/runtime/tests/utils"
@@ -29,7 +30,7 @@ import (
 func runByteSample(data []byte) int {
 
 	if !utf8.Valid(data) {
-		return 0
+		return -1
 	}
 
 	program, err := parser2.ParseProgram(string(data))
@@ -48,6 +49,25 @@ func runByteSample(data []byte) int {
 	}
 
 	err = checker.Check()
+	if err != nil {
+		return 0
+	}
+
+	var uuid uint64
+
+	inter, err := interpreter.NewInterpreter(
+		interpreter.ProgramFromChecker(checker),
+		checker.Location,
+		interpreter.WithUUIDHandler(func() (uint64, error) {
+			defer func() { uuid++ }()
+			return uuid, nil
+		}),
+	)
+	if err != nil {
+		return 0
+	}
+
+	err = inter.Interpret()
 	if err != nil {
 		return 0
 	}
