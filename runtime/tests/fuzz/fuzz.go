@@ -19,6 +19,9 @@
 package fuzz
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/onflow/cadence/runtime/interpreter"
@@ -33,7 +36,18 @@ func runByteSample(data []byte) int {
 		return -1
 	}
 
-	program, err := parser2.ParseProgram(string(data))
+	return runStringSample(strings.TrimSpace(string(data)))
+}
+
+func runStringSample(code string) (rc int) {
+	rc = 99999 // if this function returns normally, rc will change
+	defer func() {
+		if rc == 99999 { // sample returned abnormally, print a reproducer
+			fmt.Printf("\n\n\trunStringSample(%s)\n\n", strconv.QuoteToASCII(code))
+		}
+	}()
+
+	program, err := parser2.ParseProgram(code)
 
 	if err != nil {
 		return 0
