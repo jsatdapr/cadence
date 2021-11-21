@@ -50,8 +50,9 @@ lint-github-actions: build-linter
 	tools/golangci-lint/golangci-lint run --out-format=github-actions -v ./...
 
 .PHONY: lint
-lint: build-linter
-	tools/golangci-lint/golangci-lint run -v ./...
+lint-%-buildtag: build-linter
+	tools/golangci-lint/golangci-lint run -v --build-tags=$* ./...
+lint: lint-default-buildtag
 
 
 .PHONY: fix-lint
