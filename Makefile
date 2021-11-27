@@ -71,6 +71,18 @@ check-headers:
 generate:
 	go generate -v ./...
 
+.PHONY: fuzz
+fuzz: ./Fuzz-dvyukov
+
+FUZZTIME ?= 5s
+
+%-dvyukov.zip:
+	go-fuzz-build -o $@
+.PRECIOUS: %-dvyukov.zip
+%-dvyukov: %-dvyukov.zip
+	timeout --signal int --foreground --preserve-status $(FUZZTIME) \
+	go-fuzz -testoutput -procs $(J) -bin $<
+
 .PHONY: check-tidy
 check-tidy: generate
 	go mod tidy
