@@ -34,6 +34,7 @@ language/tools/vscode-extension/out/*
 crashers
 corpus
 suppressions
+Fuzz*.zip
 
 languageserver/test/languageserver
 coverage.txt
