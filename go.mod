@@ -3,6 +3,7 @@ module github.com/onflow/cadence
 go 1.16
 
 require (
+	git.fuzzbuzz.io/fuzz v0.0.16 // indirect
 	github.com/bytecodealliance/wasmtime-go v0.22.0
 	github.com/c-bata/go-prompt v0.2.5
 	github.com/cheekybits/genny v1.0.0
