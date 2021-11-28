@@ -1,5 +1,5 @@
-//go:build !gofuzzbeta && !fuzzbuzz
-// +build !gofuzzbeta,!fuzzbuzz
+//go:build fuzzbuzz
+// +build fuzzbuzz
 
 /*
  * Cadence - The resource-oriented smart contract programming language
@@ -21,4 +21,6 @@
 
 package fuzz
 
-func FuzzRandomBytes(data []byte) int { return runByteSample(data) }
+import "git.fuzzbuzz.io/fuzz"
+
+func FuzzRandomBytes(f *fuzz.F) { runByteSample(f.Bytes("bs").Get()) }
