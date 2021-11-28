@@ -20,6 +20,7 @@ require (
 	go.uber.org/goleak v1.1.10
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/sys v0.0.0-20210910150752-751e447fb3d0 // indirect
 	golang.org/x/text v0.3.6
 	golang.org/x/tools v0.0.0-20200828161849-5deb26317202
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

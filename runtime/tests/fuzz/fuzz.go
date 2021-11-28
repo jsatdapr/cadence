@@ -40,10 +40,14 @@ func runByteSample(data []byte) int {
 }
 
 func runStringSample(code string) (rc int) {
+	reproducer := fmt.Sprintf("runStringSample(%s)", strconv.QuoteToASCII(code))
+	SetMessageToDumpOnUnexpectedExit(reproducer)
+	defer SetMessageToDumpOnUnexpectedExit("")
+
 	rc = 99999 // if this function returns normally, rc will change
 	defer func() {
 		if rc == 99999 { // sample returned abnormally, print a reproducer
-			fmt.Printf("\n\n\trunStringSample(%s)\n\n", strconv.QuoteToASCII(code))
+			fmt.Println("\n\n\t" + reproducer + "\n\n")
 		}
 	}()
 
@@ -90,4 +94,22 @@ func runStringSample(code string) (rc int) {
 	}
 
 	return 1
+}
+
+var MessageToDumpOnUnexpectedExit = []byte("Unexpected os.Exit()\n")
+var MessageToDumpOnUnexpectedExit_len = len(MessageToDumpOnUnexpectedExit)
+
+func SetMessageToDumpOnUnexpectedExit(msg string) {
+	if msg == "" {
+		MessageToDumpOnUnexpectedExit_len = 0
+		return
+	}
+	s := `
+Unexpected os.Exit()
+v----------------------v
+` + msg + `
+^----------------------^
+`
+	MessageToDumpOnUnexpectedExit = []byte(s)
+	MessageToDumpOnUnexpectedExit_len = len(MessageToDumpOnUnexpectedExit)
 }
