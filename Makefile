@@ -22,6 +22,7 @@ GOPATH ?= $(HOME)/go
 PATH := $(PATH):$(GOPATH)/bin
 
 COVERPKGS := $(shell go list ./... | grep -v /cmd | grep -v /runtime/test | tr "\n" "," | sed 's/,*$$//')
+GOFUZZBETA := $(shell go help testflag | grep -q fuzz && echo yes)
 
 .PHONY: test-with-coverage
 test-with-coverage: COVERAGE=-coverprofile=coverage.txt -covermode=atomic -coverpkg $(COVERPKGS)
@@ -53,6 +54,7 @@ lint-github-actions: build-linter
 lint-%-buildtag: build-linter
 	tools/golangci-lint/golangci-lint run -v --build-tags=$* ./...
 lint: lint-default-buildtag
+lint: $(if $(GOFUZZBETA),lint-gofuzzbeta-buildtag)
 
 .PHONY: fix-lint
 fix-lint: build-linter
@@ -73,11 +75,18 @@ generate:
 
 .PHONY: fuzz
 fuzz: ./runtime/tests/fuzz/FuzzRandomBytes-dvyukov
+fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 
 FUZZTIME ?= 5s
 FUZZPCKG = github.com/onflow/cadence/$(dir $@)
 FUZZFUNC = $(notdir $*)
 
+%-gofuzzbeta:
+	go test -run=NONE \
+	  -tags=gofuzzbeta \
+	  -test.parallel=$(J) \
+	  -test.fuzztime $(FUZZTIME) \
+	  -fuzz=$(FUZZFUNC) $(FUZZPCKG)
 %-dvyukov.zip:
 	go-fuzz-build -o $@ \
 	  -func $(FUZZFUNC) $(FUZZPCKG)
