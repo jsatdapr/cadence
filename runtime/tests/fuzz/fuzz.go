@@ -26,7 +26,7 @@ import (
 	"github.com/onflow/cadence/runtime/tests/utils"
 )
 
-func Fuzz(data []byte) int {
+func FuzzRandomBytes(data []byte) int {
 
 	if !utf8.Valid(data) {
 		return 0
