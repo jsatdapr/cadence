@@ -25,8 +25,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/onflow/cadence"
 )
 
 const crashersDir = "../../../crashers"
@@ -62,7 +60,7 @@ func TestCrashers(t *testing.T) {
 
 			assert.NotPanics(t,
 				func() {
-					cadence.Fuzz(data)
+					Fuzz(data)
 				},
 				string(data),
 			)

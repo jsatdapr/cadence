@@ -72,16 +72,17 @@ generate:
 	go generate -v ./...
 
 .PHONY: fuzz
-fuzz: ./Fuzz-dvyukov
+fuzz: ./runtime/tests/fuzz/Fuzz-dvyukov
 
 FUZZTIME ?= 5s
+FUZZPCKG = github.com/onflow/cadence/$(dir $@)
 
 %-dvyukov.zip:
-	go-fuzz-build -o $@
+	go-fuzz-build -o $@ $(FUZZPCKG)
 .PRECIOUS: %-dvyukov.zip
 %-dvyukov: %-dvyukov.zip
 	timeout --signal int --foreground --preserve-status $(FUZZTIME) \
-	go-fuzz -testoutput -procs $(J) -bin $<
+	go-fuzz -testoutput -procs $(J) -bin $< $(FUZZPCKG)
 
 .PHONY: check-tidy
 check-tidy: generate
