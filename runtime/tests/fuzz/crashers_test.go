@@ -60,7 +60,7 @@ func TestCrashers(t *testing.T) {
 
 			assert.NotPanics(t,
 				func() {
-					Fuzz(data)
+					runByteSample(data)
 				},
 				string(data),
 			)

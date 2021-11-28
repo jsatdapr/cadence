@@ -1,7 +1,10 @@
+//go:build gofuzzbeta
+// +build gofuzzbeta
+
 /*
  * Cadence - The resource-oriented smart contract programming language
  *
- * Copyright 2019-2021 Dapper Labs, Inc.
+ * Copyright 2021 Dapper Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +21,6 @@
 
 package fuzz
 
-import (
-	"unicode/utf8"
+import "testing"
 
-	"github.com/onflow/cadence/runtime/parser2"
-	"github.com/onflow/cadence/runtime/sema"
-	"github.com/onflow/cadence/runtime/tests/utils"
-)
-
-func runByteSample(data []byte) int {
-
-	if !utf8.Valid(data) {
-		return 0
-	}
-
-	program, err := parser2.ParseProgram(string(data))
-
-	if err != nil {
-		return 0
-	}
-
-	checker, err := sema.NewChecker(
-		program,
-		utils.TestLocation,
-		sema.WithAccessCheckMode(sema.AccessCheckModeNotSpecifiedUnrestricted),
-	)
-	if err != nil {
-		return 0
-	}
-
-	err = checker.Check()
-	if err != nil {
-		return 0
-	}
-
-	return 1
-}
+func FuzzRandomBytes(f *testing.F) { f.Fuzz(func(t *testing.T, data []byte) { runByteSample(data) }) }
