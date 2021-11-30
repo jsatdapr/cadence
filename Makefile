@@ -92,6 +92,9 @@ FUZZFUNC = $(notdir $*)
 %-dvyukov.zip:
 	go-fuzz-build -o $@ \
 	  -func $(FUZZFUNC) $(FUZZPCKG)
+	unzip -p $@ metadata | sed -e 's|File":"\([^"]*\)"|\n\1: #\n$@: \1 #\n|g' | grep '$(shell pwd).*#$$' | sort -u \
+       > .deps.$(subst /,_,$@).d
+-include .deps.*.d
 .PRECIOUS: %-dvyukov.zip
 %-dvyukov: %-dvyukov.zip
 	timeout --signal int --foreground --preserve-status $(FUZZTIME) \
