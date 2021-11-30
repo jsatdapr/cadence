@@ -26,14 +26,18 @@ GOFUZZBETA := $(shell go help testflag | grep -q fuzz && echo yes)
 
 .PHONY: test-with-coverage
 test-with-coverage: COVERAGE=-coverprofile=coverage.txt -covermode=atomic -coverpkg $(COVERPKGS)
-test-with-coverage: test
+test-with-coverage: test-with-race
+test-with-race: RACE=-race
+test-with-race: test
 
 J ?= 8
+
 
 .PHONY: test
 test:
 	# test all packages
-	GO111MODULE=on go test -parallel $(J) -race $(COVERAGE) -test.count=1 ./...
+	CGO_ENABLED=$(if $(RACE),1,0) \
+	GO111MODULE=on go test -parallel $(J) $(RACE) $(COVERAGE) -test.count=1 ./...
 	# remove coverage of empty functions from report
 	touch coverage.txt && sed -i -e 's/^.* 0 0$$//' coverage.txt
 	cd ./languageserver && make test
