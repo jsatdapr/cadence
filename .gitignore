@@ -35,6 +35,7 @@ crashers
 corpus
 suppressions
 Fuzz*.zip
+.deps.*
 
 languageserver/test/languageserver
 coverage.txt
