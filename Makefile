@@ -23,6 +23,7 @@ PATH := $(PATH):$(GOPATH)/bin
 
 COVERPKGS := $(shell go list ./... | grep -v /cmd | grep -v /runtime/test | tr "\n" "," | sed 's/,*$$//')
 GOFUZZBETA := $(shell go help testflag | grep -q fuzz && echo yes)
+GOFUZZDVYU := $(shell go-fuzz-build -help 2>/dev/null && echo yes)
 
 .PHONY: test-with-coverage
 test-with-coverage: COVERAGE=-coverprofile=coverage.txt -covermode=atomic -coverpkg $(COVERPKGS)
@@ -79,7 +80,7 @@ generate:
 	go generate -v ./...
 
 .PHONY: fuzz
-fuzz: ./runtime/tests/fuzz/FuzzRandomBytes-dvyukov
+fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 
 FUZZTIME ?= 5s
