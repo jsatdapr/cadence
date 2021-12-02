@@ -71,4 +71,5 @@ func TestCrashers(t *testing.T) {
 
 func TestFuzzFoundRegressions(t *testing.T) {
 	// runStringSample("let Type = Type") // produces stack overflow
+	runStringSample("/**/") // produces stack overflow
 }

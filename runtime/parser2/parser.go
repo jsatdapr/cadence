@@ -292,7 +292,7 @@ func (p *parser) parseTrivia(options triviaOptions) (containsNewline bool, docSt
 			if options.parseDocStrings {
 				inLineDocString = false
 				docStringBuilder.Reset()
-				if strings.HasPrefix(comment, "/**") {
+				if strings.HasPrefix(comment, "/**") && comment != "/**/" {
 					// Strip prefix and suffix (`*/`)
 					docStringBuilder.WriteString(comment[3 : len(comment)-2])
 				}
