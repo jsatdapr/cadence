@@ -82,6 +82,7 @@ func runStringSample(code string) (rc int) {
 			defer func() { uuid++ }()
 			return uuid, nil
 		}),
+		interpreter.WithStorage(interpreter.NewInMemoryStorage()),
 	)
 	if err != nil {
 		return 0
