@@ -82,6 +82,7 @@ generate:
 .PHONY: fuzz
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
+fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
 
 FUZZTIME ?= 5s
 FUZZPCKG = github.com/onflow/cadence/$(dir $@)

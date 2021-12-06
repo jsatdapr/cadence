@@ -21,6 +21,10 @@
 
 package fuzz
 
-import "testing"
+import t "testing"
 
-func FuzzRandomBytes(f *testing.F) { f.Fuzz(func(t *testing.T, data []byte) { runByteSample(data) }) }
+func ffb(r func([]byte) int) func(*t.T, []byte) { return func(_ *t.T, d []byte) { r(d) } }
+func ffs(r func(string) int) func(*t.T, string) { return func(_ *t.T, d string) { r(d) } }
+
+func FuzzRandomBytes(f *t.F)   { f.Fuzz(ffb(runByteSample)) }
+func FuzzRandomStrings(f *t.F) { f.Fuzz(ffs(runStringSample)) }

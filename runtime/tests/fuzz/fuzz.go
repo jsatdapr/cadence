@@ -22,25 +22,25 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode/utf8"
 
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/cadence/runtime/parser2"
+	"github.com/onflow/cadence/runtime/parser2/lexer"
 	"github.com/onflow/cadence/runtime/sema"
 	"github.com/onflow/cadence/runtime/tests/utils"
 )
 
 func runByteSample(data []byte) int {
-
-	if !utf8.Valid(data) {
-		return -1
-	}
-
-	return runStringSample(strings.TrimSpace(string(data)))
+	reproducer := fmt.Sprintf("runByteSample(%#v)", data)
+	return runStreamSample(reproducer, lexer.Lex(strings.TrimSpace(string(data))))
 }
 
 func runStringSample(code string) (rc int) {
 	reproducer := fmt.Sprintf("runStringSample(%s)", strconv.QuoteToASCII(code))
+	return runStreamSample(reproducer, lexer.Lex(code))
+}
+
+func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
 	SetMessageToDumpOnUnexpectedExit(reproducer)
 	defer SetMessageToDumpOnUnexpectedExit("")
 
@@ -51,7 +51,7 @@ func runStringSample(code string) (rc int) {
 		}
 	}()
 
-	program, err := parser2.ParseProgram(code)
+	program, err := parser2.ParseProgramFromTokenStream(stream)
 
 	if err != nil {
 		return 0
