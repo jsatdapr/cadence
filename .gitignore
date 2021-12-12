@@ -36,6 +36,7 @@ corpus
 suppressions
 Fuzz*.zip
 .deps.*
+*.fuzzstats
 
 languageserver/test/languageserver
 coverage.txt

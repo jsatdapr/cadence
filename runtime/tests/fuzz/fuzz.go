@@ -19,7 +19,10 @@
 package fuzz
 
 import (
+	"crypto/sha1"
 	"fmt"
+	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 
@@ -30,27 +33,58 @@ import (
 	"github.com/onflow/cadence/runtime/tests/utils"
 )
 
+var FUZZSTATS = false
+
+func init() {
+	FUZZSTATS = os.Getenv("FUZZSTATS") == "1"
+}
+
+func sampleId(data []byte) string {
+	x := sha1.New()
+	x.Write(data)
+	return fmt.Sprintf("%x", x.Sum([]byte{}))
+}
+
 func runByteSample(data []byte) int {
 	reproducer := fmt.Sprintf("runByteSample(%#v)", data)
-	return runStreamSample(reproducer, lexer.Lex(strings.TrimSpace(string(data))))
+	return runStreamSample(sampleId(data), reproducer, lexer.Lex(strings.TrimSpace(string(data))))
 }
 
 func runStringSample(code string) (rc int) {
 	reproducer := fmt.Sprintf("runStringSample(%s)", strconv.QuoteToASCII(code))
-	return runStreamSample(reproducer, lexer.Lex(code))
+	return runStreamSample(sampleId([]byte(code)), reproducer, lexer.Lex(code))
 }
 
-func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
+func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStream) (rc int) {
 	SetMessageToDumpOnUnexpectedExit(reproducer)
 	defer SetMessageToDumpOnUnexpectedExit("")
+
+	currentState := ""
+	runId := rand.Int31()
+	state := func(s string) {
+		if FUZZSTATS {
+			currentState = s
+			msg := fmt.Sprintf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, "crashed")
+			msg += fmt.Sprintf("CRASH %s %s\n", sampleId, reproducer)
+			SetMessageToDumpOnUnexpectedExit(msg)
+		}
+	}
 
 	rc = 99999 // if this function returns normally, rc will change
 	defer func() {
 		if rc == 99999 { // sample returned abnormally, print a reproducer
 			fmt.Println("\n\n\t" + reproducer + "\n\n")
 		}
+		if FUZZSTATS {
+			res := map[int]string{-1: "invalid", 0: "err", 1: "ok", 99999: "panic"}[rc]
+			fmt.Printf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, res)
+			if res == "panic" {
+				fmt.Printf("PANIC %s %s\n", sampleId, reproducer)
+			}
+		}
 	}()
 
+	state("parsing")
 	program, err := parser2.ParseProgramFromTokenStream(stream)
 
 	if err != nil {
@@ -60,6 +94,7 @@ func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
 		return -1
 	}
 
+	state("newchecker")
 	checker, err := sema.NewChecker(
 		program,
 		utils.TestLocation,
@@ -69,6 +104,7 @@ func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
 		return 0
 	}
 
+	state("checking")
 	err = checker.Check()
 	if err != nil {
 		return 0
@@ -76,6 +112,7 @@ func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
 
 	var uuid uint64
 
+	state("newinterpreter")
 	inter, err := interpreter.NewInterpreter(
 		interpreter.ProgramFromChecker(checker),
 		checker.Location,
@@ -89,6 +126,7 @@ func runStreamSample(reproducer string, stream lexer.TokenStream) (rc int) {
 		return 0
 	}
 
+	state("interpret")
 	err = inter.Interpret()
 	if err != nil {
 		return 0

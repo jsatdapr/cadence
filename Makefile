@@ -84,6 +84,18 @@ fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
 
+.PHONY: fuzzstats
+fuzzstats: fuzz
+fuzzstats: J=1
+fuzzstats: FUZZTIME=60s
+fuzzstats: export FUZZSTATS=1
+fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH)/ { print } \
+  /^STAT/ { total++; outcomes[$$4"-"$$5]++ ; sampleids[$$2]++ } END { \
+  for (k in outcomes) { printf "%s %2.2f%%\n", k, 100.0*outcomes[k]/(1.0+total) } \
+  for (k in sampleids) { if (sampleids[k] > 1) dupes++ } \
+  printf "duplicate inputs %2.2f%% (%d out of %d total)\n", 100.0*dupes/(1.0+total), dupes+0, total+0 } \
+' | tee $@.tmp && mv $@.tmp $@.fuzzstats
+
 FUZZTIME ?= 5s
 FUZZPCKG = github.com/onflow/cadence/$(dir $@)
 FUZZFUNC = $(notdir $*)
@@ -93,7 +105,7 @@ FUZZFUNC = $(notdir $*)
 	  -tags=gofuzzbeta \
 	  -test.parallel=$(J) \
 	  -test.fuzztime $(FUZZTIME) \
-	  -fuzz=$(FUZZFUNC) $(FUZZPCKG)
+	  -fuzz=$(FUZZFUNC) $(FUZZPCKG) $(STATFILTER)
 %-dvyukov.zip:
 	go-fuzz-build -o $@ \
 	  -func $(FUZZFUNC) $(FUZZPCKG)
@@ -104,7 +116,7 @@ FUZZFUNC = $(notdir $*)
 %-dvyukov: %-dvyukov.zip
 	timeout --signal int --foreground --preserve-status $(FUZZTIME) \
 	go-fuzz -testoutput -procs $(J) -bin $< \
-	  -func $(FUZZFUNC) $(FUZZPCKG)
+	  -func $(FUZZFUNC) $(FUZZPCKG) $(STATFILTER)
 
 .PHONY: check-tidy
 check-tidy: generate
