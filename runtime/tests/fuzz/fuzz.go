@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -84,8 +85,18 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 		}
 	}()
 
+	state("generating")
+	code, generatorPanicked := generate(stream)
+
+	reproducer = fmt.Sprintf("runStringSample(%s) // %s", strconv.QuoteToASCII(code), reproducer)
+
 	state("parsing")
-	program, err := parser2.ParseProgramFromTokenStream(stream)
+	program, err := parser2.ParseProgram(code)
+
+	if generatorPanicked != nil { // generator panicked, parse did not? a "false positive"
+		state("generating")      // i.e. bug is in fuzzer generator, not in parser;
+		panic(generatorPanicked) // rethrow original panic.
+	}
 
 	if err != nil {
 		return 0
@@ -133,6 +144,20 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 	}
 
 	return 1
+}
+
+func generate(stream lexer.TokenStream) (code string, err interface{}) {
+	defer func() {
+		code = stream.Input() // return the (potentially partially) generated code.
+		if err = recover(); err != nil {
+			// if there was a generation error, return it; panic later.
+			stackbuf := make([]byte, 4096)
+			stacklen := runtime.Stack(stackbuf, false)
+			err = fmt.Sprintf("%v, %s", err, string(stackbuf[0:stacklen]))
+		}
+	}()
+	_, _ = parser2.ParseProgramFromTokenStream(stream)
+	return
 }
 
 var MessageToDumpOnUnexpectedExit = []byte("Unexpected os.Exit()\n")
