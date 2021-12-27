@@ -103,11 +103,14 @@ FUZZPCKG = github.com/onflow/cadence/$(dir $@)
 FUZZFUNC = $(notdir $*)
 
 %-gofuzzbeta:
+	RUNUNTIL=$$(($$(date +%s) + $(subst s,,$(FUZZTIME)))); \
+	while true ; do TIMELEFT=$$((RUNUNTIL - $$(date +%s))); \
+	test $$TIMELEFT -gt 0 || break; \
 	go test -run=NONE \
 	  -tags=gofuzzbeta \
 	  -test.parallel=$(J) \
-	  -test.fuzztime $(FUZZTIME) \
-	  -fuzz=$(FUZZFUNC) $(FUZZPCKG) $(STATFILTER)
+	  -test.fuzztime $${TIMELEFT}s \
+	  -fuzz=$(FUZZFUNC) $(FUZZPCKG) ; done $(STATFILTER)
 %-dvyukov.zip:
 	go-fuzz-build -o $@ \
 	  -func $(FUZZFUNC) $(FUZZPCKG)
