@@ -89,6 +89,8 @@ fuzzstats: fuzz
 fuzzstats: J=1
 fuzzstats: FUZZTIME=60s
 fuzzstats: export FUZZSTATS=1
+fuzzstats: export FUZZTIMEOUT_generating=1600
+fuzzstats: export FUZZTIMEOUT_parsing=400
 fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH)/ { print } \
   /^STAT/ { total++; outcomes[$$4"-"$$5]++ ; sampleids[$$2]++ } END { \
   for (k in outcomes) { printf "%s %2.2f%%\n", k, 100.0*outcomes[k]/(1.0+total) } \

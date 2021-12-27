@@ -26,6 +26,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/cadence/runtime/parser2"
@@ -35,9 +37,13 @@ import (
 )
 
 var FUZZSTATS = false
+var FUZZTIMEOUT = 700
 
 func init() {
 	FUZZSTATS = os.Getenv("FUZZSTATS") == "1"
+	if ft, err := strconv.Atoi(os.Getenv("FUZZTIMEOUT")); err == nil && ft != 0 {
+		FUZZTIMEOUT = ft
+	}
 }
 
 func sampleId(data []byte) string {
@@ -62,13 +68,26 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 
 	currentState := ""
 	runId := rand.Int31()
+
+	timeout := newTimeout()
+	defer timeout.Cancel()
+
 	state := func(s string) {
+		timeout.Cancel()
 		if FUZZSTATS {
 			currentState = s
 			msg := fmt.Sprintf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, "crashed")
 			msg += fmt.Sprintf("CRASH %s %s\n", sampleId, reproducer)
 			SetMessageToDumpOnUnexpectedExit(msg)
 		}
+		timeout.Start(getFuzzTimeout(s), func() {
+			if !FUZZSTATS {
+				return
+			}
+			msg := fmt.Sprintf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, "timeout")
+			msg += fmt.Sprintf("TIMEOUT %s %s\n", sampleId, reproducer)
+			fmt.Println(msg)
+		})
 	}
 
 	rc = 99999 // if this function returns normally, rc will change
@@ -146,6 +165,13 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 	return 1
 }
 
+func getFuzzTimeout(stage string) int {
+	if ms, err := strconv.Atoi(os.Getenv("FUZZTIMEOUT_" + stage)); err == nil {
+		return ms
+	}
+	return FUZZTIMEOUT
+}
+
 func generate(stream lexer.TokenStream) (code string, err interface{}) {
 	defer func() {
 		code = stream.Input() // return the (potentially partially) generated code.
@@ -176,4 +202,49 @@ v----------------------v
 `
 	MessageToDumpOnUnexpectedExit = []byte(s)
 	MessageToDumpOnUnexpectedExit_len = len(MessageToDumpOnUnexpectedExit)
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+type Timeout struct {
+	id *int32
+}
+
+const _TIMEDOUT = -1
+
+func newTimeout() Timeout {
+	id_ := int32(0)
+	return Timeout{id: &id_}
+}
+
+func (t Timeout) Cancel() {
+	was := atomic.LoadInt32(t.id)
+	if was != _TIMEDOUT {
+		atomic.CompareAndSwapInt32(t.id, was, 0)
+	}
+}
+
+func (t Timeout) Start(ms int, callback func()) {
+	if ms <= 0 {
+		panic(fmt.Errorf("invalid timeout: %d", ms))
+	}
+	timerId := rand.Int31()
+	if !atomic.CompareAndSwapInt32(t.id, 0, timerId) {
+		panic("failed to start timer")
+	}
+	go func() {
+		time.Sleep(time.Duration(ms) * time.Millisecond)
+		if atomic.CompareAndSwapInt32(t.id, timerId, _TIMEDOUT) {
+			callback()
+			os.Exit(123)
+		}
+	}()
+}
+
+func (t Timeout) TimedOut() bool {
+	return atomic.LoadInt32(t.id) <= _TIMEDOUT
+}
+
+func (t Timeout) Dispose() {
+	t.Cancel()
 }
