@@ -30,11 +30,11 @@ const (
 	TokenError TokenType = iota
 	TokenEOF
 	TokenSpace
+	TokenUnknownBaseIntegerLiteral
 	TokenBinaryIntegerLiteral
 	TokenOctalIntegerLiteral
 	TokenDecimalIntegerLiteral
 	TokenHexadecimalIntegerLiteral
-	TokenUnknownBaseIntegerLiteral
 	TokenFixedPointNumberLiteral
 	TokenIdentifier
 	TokenString
@@ -68,10 +68,6 @@ const (
 	TokenEqualEqual
 	TokenExclamationMark
 	TokenNotEqual
-	TokenBlockCommentStart
-	TokenBlockCommentEnd
-	TokenBlockCommentContent
-	TokenLineComment
 	TokenAmpersand
 	TokenAmpersandAmpersand
 	TokenCaret
@@ -81,6 +77,10 @@ const (
 	TokenAsExclamationMark
 	TokenAsQuestionMark
 	TokenPragma
+	TokenBlockCommentStart
+	TokenBlockCommentEnd
+	TokenBlockCommentContent
+	TokenLineComment
 	// NOTE: not an actual token, must be last item
 	TokenMax
 )

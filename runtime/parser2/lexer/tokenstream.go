@@ -37,7 +37,7 @@ func NewSeekableTokenStream(delegate TokenStream) SeekableTokenStream {
 	if s, ok := delegate.(SeekableTokenStream); ok {
 		return s
 	}
-	return nil // TODO &delegatingSeekableTokenStream{delegate: delegate}
+	return &delegatingSeekableTokenStream{delegate: delegate}
 }
 
 type seekableTokenStream struct {
@@ -67,4 +67,20 @@ func (l *seekableTokenStream) Revert(cursor int) {
 		panic(fmt.Errorf("illegal forward revert %d, %d", cursor, l.cursor))
 	}
 	l.cursor = cursor
+}
+
+type delegatingSeekableTokenStream struct {
+	seekableTokenStream
+	delegate TokenStream
+}
+
+func (d *delegatingSeekableTokenStream) Next() Token {
+	if d.cursor >= len(d.tokens) {
+		d.tokens = append(d.tokens, d.delegate.Next())
+	}
+	return d.seekableTokenStream.Next()
+}
+
+func (d *delegatingSeekableTokenStream) Input() string {
+	return d.delegate.Input()
 }

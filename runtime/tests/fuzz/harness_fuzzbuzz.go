@@ -23,5 +23,6 @@ package fuzz
 
 import "git.fuzzbuzz.io/fuzz"
 
-func FuzzRandomBytes(f *fuzz.F)   { runByteSample(f.Bytes("bs").Get()) }
-func FuzzRandomStrings(f *fuzz.F) { runStringSample(f.String("ss").Get()) }
+func FuzzRandomBytes(f *fuzz.F)       { runByteSample(f.Bytes("bs").Get()) }
+func FuzzRandomStrings(f *fuzz.F)     { runStringSample(f.String("ss").Get()) }
+func FuzzRandomTokenStream(f *fuzz.F) { runRandomTokenStreamSample(f.Bytes("bs").Get()) }

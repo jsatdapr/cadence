@@ -86,6 +86,8 @@ fuzz: export FUZZTIMEOUT=2500
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
+fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomTokenStream-gofuzzbeta)
+fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomTokenStream-dvyukov)
 
 .PHONY: fuzzstats
 fuzzstats: fuzz
