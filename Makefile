@@ -81,6 +81,7 @@ generate:
 
 .PHONY: fuzz
 fuzz: export FUZZTIMEOUT=2500
+# try `make FUZZDUMP=1 J=1 fuzz` to see a stream of fuzz samples
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
@@ -93,7 +94,7 @@ fuzzstats: export FUZZSTATS=1
 fuzzstats: export FUZZTIMEOUT=2500
 fuzzstats: export FUZZTIMEOUT_generating=1600
 fuzzstats: export FUZZTIMEOUT_parsing=400
-fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH)/ { print } \
+fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH|FUZZDUMP)/ { print } \
   /^STAT/ { total++; outcomes[$$4"-"$$5]++ ; sampleids[$$2]++ } END { \
   for (k in outcomes) { printf "%s %2.2f%%\n", k, 100.0*outcomes[k]/(1.0+total) } \
   for (k in sampleids) { if (sampleids[k] > 1) dupes++ } \

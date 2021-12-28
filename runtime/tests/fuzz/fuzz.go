@@ -37,6 +37,7 @@ import (
 )
 
 var FUZZSTATS = false
+var FUZZDUMP = os.Getenv("FUZZDUMP") == "1"
 var FUZZTIMEOUT = 0
 
 func init() {
@@ -122,6 +123,10 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 	}
 	if program == nil || len(program.Declarations()) == 0 {
 		return -1
+	}
+
+	if FUZZDUMP {
+		fmt.Printf("FUZZDUMP %s // %s\n", reproducer, sampleId)
 	}
 
 	state("newchecker")
