@@ -10,6 +10,7 @@ require (
 	github.com/dvyukov/go-fuzz v0.0.0-20210914135545-4980593459a1 // indirect
 	github.com/fxamacker/cbor/v2 v2.3.1-0.20211029162100-5d5d7c3edd41
 	github.com/go-test/deep v1.0.5
+	github.com/kevinburke/go-bindata v3.22.0+incompatible // indirect
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/onflow/atree v0.1.2-0.20211216135231-f8f0a14c7272
 	github.com/opentracing/opentracing-go v1.2.0
