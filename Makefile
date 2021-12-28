@@ -80,6 +80,7 @@ generate:
 	go generate -v ./...
 
 .PHONY: fuzz
+fuzz: export FUZZTIMEOUT=2500
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomBytes-dvyukov)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
@@ -89,6 +90,7 @@ fuzzstats: fuzz
 fuzzstats: J=1
 fuzzstats: FUZZTIME=60s
 fuzzstats: export FUZZSTATS=1
+fuzzstats: export FUZZTIMEOUT=2500
 fuzzstats: export FUZZTIMEOUT_generating=1600
 fuzzstats: export FUZZTIMEOUT_parsing=400
 fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH)/ { print } \

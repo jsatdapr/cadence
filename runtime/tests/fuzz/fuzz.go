@@ -37,7 +37,7 @@ import (
 )
 
 var FUZZSTATS = false
-var FUZZTIMEOUT = 700
+var FUZZTIMEOUT = 0
 
 func init() {
 	FUZZSTATS = os.Getenv("FUZZSTATS") == "1"
@@ -225,7 +225,10 @@ func (t Timeout) Cancel() {
 }
 
 func (t Timeout) Start(ms int, callback func()) {
-	if ms <= 0 {
+	if ms == 0 {
+		return
+	}
+	if ms < 0 {
 		panic(fmt.Errorf("invalid timeout: %d", ms))
 	}
 	timerId := rand.Int31()
