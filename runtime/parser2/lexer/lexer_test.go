@@ -49,7 +49,7 @@ func testLex(t *testing.T, input string, expected []Token) {
 
 	t.Parallel()
 
-	withTokens(Lex(input), func(tokens []Token) {
+	withTokens(PlainLex(input), func(tokens []Token) {
 		utils.AssertEqualWithDiff(t, expected, tokens)
 	})
 }

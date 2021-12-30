@@ -27,13 +27,30 @@ import (
 // CodeGatheringTokenStream wraps another TokenStream,
 // remembers its Tokens, and outputs Cadence source code
 type CodeGatheringTokenStream struct {
+	seekableTokenStream
 	Delegate TokenStream
-	tokens   []Token
+	expected string
+	sawError bool
 }
 
 func (s *CodeGatheringTokenStream) Next() Token {
-	token := s.Delegate.Next()
-	s.tokens = append(s.tokens, token)
+	if s.cursor >= len(s.tokens) {
+		s.tokens = append(s.tokens, s.Delegate.Next())
+	}
+	token := s.seekableTokenStream.Next()
+
+	if token.Type == TokenError {
+		s.sawError = true
+	}
+
+	// on testcases that are expected to succeed...
+	if token.Type == TokenEOF && !s.sawError {
+
+		// ... assert that the generated output is as expected
+		if s.expected != "" && s.Input() != s.expected {
+			panic(fmt.Errorf("\nexpected %q\n     got %q", s.expected, s.Input()))
+		}
+	}
 	return token
 }
 

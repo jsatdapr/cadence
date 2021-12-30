@@ -39,7 +39,7 @@ func TestOrGenerateTokenPairsThatNeedSpacing(t *testing.T) {
 	for want1 := TokenSpace; want1 < TokenLineComment; want1++ {
 		for want2 := TokenSpace; want2 < TokenLineComment; want2++ {
 			wantEOF := TokenEOF
-			lex := Lex(ttxt(want1) + ttxt(want2))
+			lex := PlainLex(ttxt(want1) + ttxt(want2))
 			have1, have2, haveEOF := lex.Next().Type, lex.Next().Type, lex.Next().Type
 
 			if want1 != have1 || want2 != have2 || wantEOF != haveEOF {
@@ -47,7 +47,7 @@ func TestOrGenerateTokenPairsThatNeedSpacing(t *testing.T) {
 				// does adding a space in between make it lex properly?
 				spaced := ttxt(want1) + " " + ttxt(want2)
 
-				lex = Lex(spaced)
+				lex = PlainLex(spaced)
 				have1, haveSpace, have2, haveEOF := lex.Next().Type, lex.Next().Type, lex.Next().Type, lex.Next().Type
 
 				if want1 == have1 && TokenSpace == haveSpace && want2 == have2 && wantEOF == haveEOF {

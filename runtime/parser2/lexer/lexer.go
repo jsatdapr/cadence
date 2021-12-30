@@ -57,7 +57,9 @@ func (l *lexer) Input() string {
 	return l.input
 }
 
-func Lex(input string) SeekableTokenStream {
+var Lex = PlainLex
+
+func PlainLex(input string) SeekableTokenStream {
 	l := &lexer{
 		input:         input,
 		startPos:      position{line: 1},
