@@ -86,9 +86,10 @@ const (
 )
 
 func init() {
-	// ensure all tokens have its string format
+	// ensure all tokens have its string format and that all tokens have names
 	for t := TokenType(0); t < TokenMax; t++ {
 		_ = t.String()
+		_ = t.Name()
 	}
 }
 
@@ -205,4 +206,70 @@ func (t TokenType) String() string {
 	default:
 		panic(errors.NewUnreachableError())
 	}
+}
+
+var tokenNames = map[TokenType]string{
+	TokenError:                     "TokenError",
+	TokenEOF:                       "TokenEOF",
+	TokenUnknownBaseIntegerLiteral: "TokenUnknownBaseIntegerLiteral",
+	TokenSpace:                     "TokenSpace",
+	TokenBinaryIntegerLiteral:      "TokenBinaryIntegerLiteral",
+	TokenOctalIntegerLiteral:       "TokenOctalIntegerLiteral",
+	TokenDecimalIntegerLiteral:     "TokenDecimalIntegerLiteral",
+	TokenHexadecimalIntegerLiteral: "TokenHexadecimalIntegerLiteral",
+	TokenFixedPointNumberLiteral:   "TokenFixedPointNumberLiteral",
+	TokenIdentifier:                "TokenIdentifier",
+	TokenString:                    "TokenString",
+	TokenPlus:                      "TokenPlus",
+	TokenMinus:                     "TokenMinus",
+	TokenStar:                      "TokenStar",
+	TokenSlash:                     "TokenSlash",
+	TokenPercent:                   "TokenPercent",
+	TokenDoubleQuestionMark:        "TokenDoubleQuestionMark",
+	TokenParenOpen:                 "TokenParenOpen",
+	TokenParenClose:                "TokenParenClose",
+	TokenBraceOpen:                 "TokenBraceOpen",
+	TokenBraceClose:                "TokenBraceClose",
+	TokenBracketOpen:               "TokenBracketOpen",
+	TokenBracketClose:              "TokenBracketClose",
+	TokenQuestionMark:              "TokenQuestionMark",
+	TokenQuestionMarkDot:           "TokenQuestionMarkDot",
+	TokenComma:                     "TokenComma",
+	TokenColon:                     "TokenColon",
+	TokenDot:                       "TokenDot",
+	TokenSemicolon:                 "TokenSemicolon",
+	TokenLeftArrow:                 "TokenLeftArrow",
+	TokenLeftArrowExclamation:      "TokenLeftArrowExclamation",
+	TokenSwap:                      "TokenSwap",
+	TokenLess:                      "TokenLess",
+	TokenLessEqual:                 "TokenLessEqual",
+	TokenLessLess:                  "TokenLessLess",
+	TokenGreater:                   "TokenGreater",
+	TokenGreaterEqual:              "TokenGreaterEqual",
+	TokenEqual:                     "TokenEqual",
+	TokenEqualEqual:                "TokenEqualEqual",
+	TokenExclamationMark:           "TokenExclamationMark",
+	TokenNotEqual:                  "TokenNotEqual",
+	TokenAmpersand:                 "TokenAmpersand",
+	TokenAmpersandAmpersand:        "TokenAmpersandAmpersand",
+	TokenCaret:                     "TokenCaret",
+	TokenVerticalBar:               "TokenVerticalBar",
+	TokenVerticalBarVerticalBar:    "TokenVerticalBarVerticalBar",
+	TokenAt:                        "TokenAt",
+	TokenAsExclamationMark:         "TokenAsExclamationMark",
+	TokenAsQuestionMark:            "TokenAsQuestionMark",
+	TokenPragma:                    "TokenPragma",
+	TokenBlockCommentStart:         "TokenBlockCommentStart",
+	TokenBlockCommentEnd:           "TokenBlockCommentEnd",
+	TokenBlockCommentContent:       "TokenBlockCommentContent",
+	TokenLineComment:               "TokenLineComment",
+	TokenMax:                       "TokenMax",
+}
+
+func (t TokenType) Name() string {
+	res, ok := tokenNames[t]
+	if !ok {
+		panic(errors.NewUnreachableError())
+	}
+	return res
 }
