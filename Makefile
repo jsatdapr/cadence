@@ -59,6 +59,7 @@ lint-github-actions: build-linter
 lint-%-buildtag: build-linter
 	tools/golangci-lint/golangci-lint run -v --build-tags=$* ./...
 lint: lint-default-buildtag
+lint: lint-generate-buildtag
 lint: lint-fuzzgen-buildtag
 lint: lint-fuzzbuzz-buildtag
 lint: $(if $(GOFUZZBETA),lint-gofuzzbeta-buildtag)

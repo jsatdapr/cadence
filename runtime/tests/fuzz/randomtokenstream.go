@@ -25,7 +25,6 @@ import (
 )
 
 type RandomTokenStream struct {
-	nextIsSpace bool
 	Data        []byte
 	dataIndex   int
 	accumulator int
@@ -58,17 +57,6 @@ func (ts *RandomTokenStream) Next() lexer.Token {
 			return lexer.Token{Type: lexer.TokenEOF}
 		}
 	}
-	if ts.nextIsSpace {
-		ts.nextIsSpace = false
-		res := lexer.Token{Type: lexer.TokenSpace}
-		if ts.intn(2) == 0 {
-			res.Value = lexer.Space{String: " ", ContainsNewline: false}
-		} else {
-			res.Value = lexer.Space{String: "\n", ContainsNewline: true}
-		}
-		return res
-	}
-	ts.nextIsSpace = true
 
 	if !ts.sentKeyword {
 		ts.sentKeyword = true

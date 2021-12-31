@@ -77,10 +77,10 @@ const (
 	TokenAsExclamationMark
 	TokenAsQuestionMark
 	TokenPragma
+	TokenLineComment
 	TokenBlockCommentStart
 	TokenBlockCommentEnd
 	TokenBlockCommentContent
-	TokenLineComment
 	// NOTE: not an actual token, must be last item
 	TokenMax
 )

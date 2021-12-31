@@ -65,7 +65,9 @@ func runStringSample(code string) (rc int) {
 
 func runRandomTokenStreamSample(data []byte) int {
 	reproducer := fmt.Sprintf("runRandomTokenStreamSample(%#v)", data)
-	return runStreamSample(sampleId(data), reproducer, &RandomTokenStream{Data: data})
+	stream := &lexer.AutoSpacingTokenStream{
+		Delegate: &RandomTokenStream{Data: data}}
+	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
 func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStream) (rc int) {
