@@ -59,6 +59,7 @@ lint-github-actions: build-linter
 lint-%-buildtag: build-linter
 	tools/golangci-lint/golangci-lint run -v --build-tags=$* ./...
 lint: lint-default-buildtag
+lint: lint-fuzzgen-buildtag
 lint: lint-fuzzbuzz-buildtag
 lint: $(if $(GOFUZZBETA),lint-gofuzzbeta-buildtag)
 
@@ -77,7 +78,7 @@ check-headers:
 
 .PHONY: generate
 generate:
-	go generate -v ./...
+	go generate -x ./...
 
 .PHONY: fuzz
 fuzz: export FUZZTIMEOUT=2500
