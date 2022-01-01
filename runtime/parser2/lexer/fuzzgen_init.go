@@ -25,6 +25,7 @@ func init() {
 	prevLex := Lex
 	Lex = func(input string) SeekableTokenStream {
 		return &CodeGatheringTokenStream{
+			fuzzgen:  true,
 			expected: input,
 			Delegate: &AutoSpacingTokenStream{
 				Delegate: prevLex(input),

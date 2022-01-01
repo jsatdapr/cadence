@@ -21,6 +21,7 @@ package lexer
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -31,12 +32,14 @@ type CodeGatheringTokenStream struct {
 	Delegate TokenStream
 	expected string
 	sawError bool
+	fuzzgen  bool
 }
 
 func (s *CodeGatheringTokenStream) Next() Token {
 	if s.cursor >= len(s.tokens) {
 		s.tokens = append(s.tokens, s.Delegate.Next())
 	}
+
 	token := s.seekableTokenStream.Next()
 
 	if token.Type == TokenError {
@@ -49,6 +52,14 @@ func (s *CodeGatheringTokenStream) Next() Token {
 		// ... assert that the generated output is as expected
 		if s.expected != "" && s.Input() != s.expected {
 			panic(fmt.Errorf("\nexpected %q\n     got %q", s.expected, s.Input()))
+		}
+
+		if s.fuzzgen { // ... and collect example values from the test suite
+			for _, t := range s.tokens { // ... for use in the various fuzzers.
+				if t.Type >= TokenBinaryIntegerLiteral && t.Type <= TokenString {
+					log.Printf("\nFUZZGEN: TOKENDUMP\t%s\t%q\n", t.Type.Name(), t.Value.(string))
+				}
+			}
 		}
 	}
 	return token

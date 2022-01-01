@@ -36,15 +36,19 @@ func (ts *RandomTokenStream) Input() string {
 }
 
 func (ts *RandomTokenStream) intn(n int) int {
-	if n <= 0 || n >= 256 {
+	if n <= 0 {
 		panic(errors.NewUnreachableError())
 	}
-	b := ts.Data[ts.dataIndex%len(ts.Data)]
-	ts.dataIndex++
+	b := 0
+	for p := n; p > 0; p /= 256 {
+		b <<= 8
+		b += int(ts.Data[ts.dataIndex%len(ts.Data)])
+		ts.dataIndex++
+	}
 	if ts.dataIndex >= len(ts.Data) {
 		ts.accumulator++
 	}
-	return (int(b) + ts.accumulator) % n
+	return (b + ts.accumulator) % n
 }
 
 func (ts *RandomTokenStream) Next() lexer.Token {
@@ -65,7 +69,7 @@ func (ts *RandomTokenStream) Next() lexer.Token {
 		if firstWhat <= 1 { // 50% of the time, keyword
 			t.Value = parser2.Keywords[ts.intn(len(parser2.Keywords))]
 		} else if firstWhat == 2 { // 25%, start with some other identifier
-			ids := []string{"a", "b", "c", "d"}
+			ids := exampleTokenValues[lexer.TokenIdentifier]
 			t.Value = ids[ts.intn(len(ids))]
 		} else if firstWhat == 3 { // 25%, start with a pragma
 			t.Type = lexer.TokenPragma
@@ -78,20 +82,9 @@ func (ts *RandomTokenStream) Next() lexer.Token {
 	ty := lexer.TokenType(min + ts.intn(max-min+1))
 
 	t := lexer.Token{Type: ty}
-	if ty == lexer.TokenIdentifier {
-		t.Value = []string{"a", "b", "c", "d"}[ts.intn(4)]
-	} else if ty == lexer.TokenString {
-		t.Value = "\"string\""
-	} else if ty == lexer.TokenFixedPointNumberLiteral {
-		t.Value = []string{"0.1", "1.0"}[ts.intn(2)]
-	} else if ty == lexer.TokenBinaryIntegerLiteral {
-		t.Value = []string{"0b0", "0b1"}[ts.intn(2)]
-	} else if ty == lexer.TokenOctalIntegerLiteral {
-		t.Value = []string{"0o0", "0o1"}[ts.intn(2)]
-	} else if ty == lexer.TokenDecimalIntegerLiteral {
-		t.Value = []string{"000", "-1.0"}[ts.intn(2)]
-	} else if ty == lexer.TokenHexadecimalIntegerLiteral {
-		t.Value = []string{"0x0", "0x7ffffffffffff"}[ts.intn(2)]
+	if ty >= lexer.TokenBinaryIntegerLiteral && ty <= lexer.TokenString {
+		egs := exampleTokenValues[ty]
+		t.Value = egs[ts.intn(len(egs))]
 	}
 	return t
 }
