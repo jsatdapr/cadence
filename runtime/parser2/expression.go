@@ -21,6 +21,7 @@ package parser2
 import (
 	"fmt"
 	"math/big"
+	goRuntime "runtime"
 	"strings"
 	"unicode/utf8"
 
@@ -584,7 +585,12 @@ func defineLessThanOrTypeArgumentsExpression() {
 
 			(func() {
 				defer func() {
-					_ = recover()
+					if r := recover(); r != nil {
+						switch r := r.(type) {
+						case goRuntime.Error, errors.UnreachableError, *errors.UnreachableError:
+							panic(r) // Don't recover from supposedly impossible situations
+						}
+					}
 				}()
 
 				typeArguments = parseCommaSeparatedTypeAnnotations(p, lexer.TokenGreater)
