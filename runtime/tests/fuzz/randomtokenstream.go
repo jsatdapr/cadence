@@ -71,6 +71,7 @@ func (ts *RandomTokenStream) Next() lexer.Token {
 
 type SimpleRandomTokenStream struct {
 	Fuzzbits
+	NoPragmas bool
 }
 
 func (s *SimpleRandomTokenStream) Input() string {
@@ -128,7 +129,6 @@ var simpleRandomTokenList = [90]lexer.Token{
 	dt(lexer.TokenAt, nil),
 	dt(lexer.TokenAsExclamationMark, nil),
 	dt(lexer.TokenAsQuestionMark, nil),
-	dt(lexer.TokenPragma, nil),
 	dt(lexer.TokenIdentifier, parser2.Keywords[kz+0]),  //keywordIf,
 	dt(lexer.TokenIdentifier, parser2.Keywords[kz+1]),  //keywordElse,
 	dt(lexer.TokenIdentifier, parser2.Keywords[kz+2]),  //keywordWhile,
@@ -175,11 +175,16 @@ var simpleRandomTokenList = [90]lexer.Token{
 	dt(lexer.TokenString, "\"a\""),
 	dt(lexer.TokenIdentifier, "a"),
 	dt(lexer.TokenIdentifier, "b"),
+	dt(lexer.TokenPragma, nil),
 }
 
 func (s *SimpleRandomTokenStream) Next() lexer.Token {
 	if s.Fuzzbits.BitsLeft() <= 0 {
 		return lexer.Token{Type: lexer.TokenEOF}
 	}
-	return simpleRandomTokenList[s.Fuzzbits.Intn(len(simpleRandomTokenList))]
+	N := len(simpleRandomTokenList)
+	if s.NoPragmas {
+		N--
+	}
+	return simpleRandomTokenList[s.Fuzzbits.Intn(N)]
 }
