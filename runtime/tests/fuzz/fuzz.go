@@ -71,6 +71,14 @@ func runRandomTokenStreamSample(data []byte) int {
 	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
+func runSimpleRandomTokenStreamSample(data []byte) int {
+	reproducer := fmt.Sprintf("runSimpleRandomTokenStreamSample(%#v)", data)
+	stream := &lexer.CodeGatheringTokenStream{
+		Delegate: &lexer.AutoSpacingTokenStream{
+			Delegate: &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(data)}}}
+	return runStreamSample(sampleId(data), reproducer, stream)
+}
+
 func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStream) (rc int) {
 	SetMessageToDumpOnUnexpectedExit(reproducer)
 	defer SetMessageToDumpOnUnexpectedExit("")

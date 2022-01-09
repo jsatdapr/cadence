@@ -56,6 +56,10 @@ func mkRandomTokenStream(data []byte) lexer.TokenStream {
 	return &RandomTokenStream{Fuzzbits: NewFuzzbits(data)}
 }
 
+func mkSimpleRandomTokenStream(data []byte) lexer.TokenStream {
+	return &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(data)}
+}
+
 func TestRandomTokenStreams(t *testing.T) {
 	total := 1000000
 	pct := func(x int) float64 { return float64(x) * 100.0 / float64(total) }
@@ -64,7 +68,8 @@ func TestRandomTokenStreams(t *testing.T) {
 		"fail#", "empty#", "ok#", "dupe#")
 
 	for name, fun := range map[string]func([]byte) lexer.TokenStream{
-		"RandomTokenStream": mkRandomTokenStream,
+		"RandomTokenStream":       mkRandomTokenStream,
+		"SimpleRandomTokenStream": mkSimpleRandomTokenStream,
 	} {
 		fail, empty, ok, dupe := testTokenStream(total, fun)
 		fmt.Printf("%6.2f%%,%6.2f%%,%6.2f%%,%6.2f%% ... %7d,%7d,%7d,%7d,%7d ... %s\n",

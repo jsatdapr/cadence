@@ -89,6 +89,8 @@ fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomTokenStream-gofuzzbeta)
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomTokenStream-dvyukov)
+fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzSimpleRandomTokenStream-gofuzzbeta)
+fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzSimpleRandomTokenStream-dvyukov)
 
 .PHONY: fuzzstats
 fuzzstats: fuzz

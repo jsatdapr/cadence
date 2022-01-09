@@ -26,6 +26,7 @@ import t "testing"
 func ffb(r func([]byte) int) func(*t.T, []byte) { return func(_ *t.T, d []byte) { r(d) } }
 func ffs(r func(string) int) func(*t.T, string) { return func(_ *t.T, d string) { r(d) } }
 
-func FuzzRandomBytes(f *t.F)       { f.Fuzz(ffb(runByteSample)) }
-func FuzzRandomStrings(f *t.F)     { f.Fuzz(ffs(runStringSample)) }
-func FuzzRandomTokenStream(f *t.F) { f.Fuzz(ffb(runRandomTokenStreamSample)) }
+func FuzzRandomBytes(f *t.F)             { f.Fuzz(ffb(runByteSample)) }
+func FuzzRandomStrings(f *t.F)           { f.Fuzz(ffs(runStringSample)) }
+func FuzzRandomTokenStream(f *t.F)       { f.Fuzz(ffb(runRandomTokenStreamSample)) }
+func FuzzSimpleRandomTokenStream(f *t.F) { f.Fuzz(ffb(runSimpleRandomTokenStreamSample)) }
