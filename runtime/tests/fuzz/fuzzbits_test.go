@@ -19,6 +19,9 @@
 package fuzz
 
 import (
+	"encoding/binary"
+	"fmt"
+	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -49,4 +52,97 @@ func TestThatFuzzbitsCanBeAppendedTo(t *testing.T) {
 			t.FailNow()
 		}
 	}
+}
+
+func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
+
+	t.Parallel()
+
+	rndSampling := func(data []byte, _ int) { rand.Read(data) }
+	enumerative := func(data []byte, i int) { binary.LittleEndian.PutUint32(data, uint32(i)) }
+
+	for name, moduli := range map[string][]int{
+		"hourofday": {24},
+		"minofhour": {60},
+		"dayofyear": {365},
+		"minofday1": {24, 60},
+		"minofday2": {60, 24},
+		"pik2cards": {52, 51},
+		"furlongft": {10, 22, 3},
+	} {
+		for chunkSize := 8; chunkSize <= 8; chunkSize++ {
+			accuracy := 0.000001 // enumerating every possible input one time, gives precise answer
+			expected, actual := calcDupePct(chunkSize, moduli, enumerative, func(float64) int { return 1 })
+			assert.InDelta(t, expected, actual, accuracy, "enum %s (%d)", name, chunkSize)
+
+			accuracy = 1.0 // random sampling; multiple rounds to prove prediction to 1% accuracy
+			numRounds := func(waste float64) int { return int((100. / accuracy) / (waste * waste / math.E)) }
+			expected, actual = calcDupePct(chunkSize, moduli, rndSampling, numRounds)
+			assert.InDelta(t, expected, actual, accuracy, "rand %s (%d) %d", name, chunkSize, numRounds)
+		}
+	}
+}
+
+func calcDupePct(chunkSize int, moduli []int, getbits func([]byte, int), numRoundsF func(float64) int) (float64, float64) {
+	totalWastedBits := 0.
+	totalUsedBits := 0
+	differentPossibleOutputs := 1
+
+	fb := NewFuzzbits( /*chunkSize, */ make([]byte, 100))
+	for _, N := range moduli {
+		differentPossibleOutputs *= N
+
+		numFractionalBitsNeededToSelectN := math.Log2(float64(N))
+		numIntegralBitsNeededToSelectN := int(math.Ceil(numFractionalBitsNeededToSelectN))
+		numChunkedBitsNeededToSelectN := chunkSize * ((numIntegralBitsNeededToSelectN + chunkSize - 1) / chunkSize)
+		wastedBitsOnSelectingN := float64(numChunkedBitsNeededToSelectN) - numFractionalBitsNeededToSelectN
+
+		had, _, have := fb.BitsLeft(), fb.Intn(N), fb.BitsLeft()
+		actualUsedBits := had - have
+		if actualUsedBits != numChunkedBitsNeededToSelectN {
+			panic(fmt.Errorf("expected %d, actual %d\n", numChunkedBitsNeededToSelectN, actualUsedBits))
+		}
+
+		totalUsedBits += actualUsedBits
+		totalWastedBits += wastedBitsOnSelectingN
+	}
+
+	if totalUsedBits > 26 {
+		panic(fmt.Errorf("too many bits for this test harness: %d\n", totalUsedBits))
+	}
+
+	// lets try every different possible input ...
+	differentPossibleInputs := 1 << totalUsedBits
+
+	// ... and see how many duplicates that produces.
+	// we predict XX%, where XX=100*(1.0-0.5^wastedBits)
+	// i.e. 1 wasted bit=>50% dupes, 2 wasted bits=>75% dupes, ...
+	expectedDupePct := 100.0 * (1.0 - math.Pow(1/2., totalWastedBits))
+
+	// so let's keep a count for each possible output while we ...
+	counts := make([]int, differentPossibleOutputs)
+	input := make([]byte, 4)                 // ... try every possible input ...
+	numRounds := numRoundsF(totalWastedBits) // ... "numRounds" times.
+	numSamples := differentPossibleInputs * numRounds
+	for i := 0; i < numSamples; i++ {
+		getbits(input, i)
+		fb := NewFuzzbits( /*chunkSize, */ input)
+		choice := 0
+		for _, N := range moduli {
+			choice = choice*N + fb.Intn(N)
+		}
+		counts[choice]++
+	}
+
+	actualDupes := 0
+	expectedCount := numRounds
+	for _, count := range counts {
+		if count > expectedCount {
+			actualDupes += count - expectedCount
+		}
+	}
+
+	actualDupePct := float64(100*actualDupes) / float64(numSamples)
+
+	return expectedDupePct, actualDupePct
 }
