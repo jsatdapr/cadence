@@ -24,7 +24,6 @@ import (
 	"math"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,14 +32,19 @@ import (
 // bytes to the old samples.  Assert here that adding new bytes
 // doesn't change the output, until all the old output is used up.
 func TestThatFuzzbitsCanBeAppendedTo(t *testing.T) {
-	seed := 123456 + time.Now().Unix()
+	for chunkSize := 1; chunkSize <= 17; chunkSize++ {
+		testThatFuzzbitsCanBeAppendedTo(t, chunkSize, rand.Int63())
+	}
+}
+
+func testThatFuzzbitsCanBeAppendedTo(t *testing.T, chunkSize int, seed int64) {
 	rnd := rand.New(rand.NewSource(seed))
 	oldSample := make([]byte, 1+rnd.Intn(30))
 	appendage := make([]byte, 1+rnd.Intn(10))
 	rnd.Read(oldSample)
 	rnd.Read(appendage)
-	fbExpected := NewFuzzbits(oldSample)
-	fbActual := NewFuzzbits(append(oldSample, appendage...))
+	fbExpected := NewFuzzbits(chunkSize, oldSample)
+	fbActual := NewFuzzbits(chunkSize, append(oldSample, appendage...))
 	for {
 		modulus := 1 + rnd.Intn(256)
 		expected := fbExpected.Intn(modulus)
@@ -54,7 +58,12 @@ func TestThatFuzzbitsCanBeAppendedTo(t *testing.T) {
 	}
 }
 
+// consuming fuzzbits in chunks (even 1 bit) wastes bits and gives duplicate outputs.
+// i.e. waste 1 bit: 50% dupes, 2 bits 75% dupes, 3 bits 87.5% ... etc.
 func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 
 	t.Parallel()
 
@@ -70,7 +79,7 @@ func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
 		"pik2cards": {52, 51},
 		"furlongft": {10, 22, 3},
 	} {
-		for chunkSize := 8; chunkSize <= 8; chunkSize++ {
+		for chunkSize := 1; chunkSize <= 8; chunkSize++ {
 			accuracy := 0.000001 // enumerating every possible input one time, gives precise answer
 			expected, actual := calcDupePct(chunkSize, moduli, enumerative, func(float64) int { return 1 })
 			assert.InDelta(t, expected, actual, accuracy, "enum %s (%d)", name, chunkSize)
@@ -88,7 +97,7 @@ func calcDupePct(chunkSize int, moduli []int, getbits func([]byte, int), numRoun
 	totalUsedBits := 0
 	differentPossibleOutputs := 1
 
-	fb := NewFuzzbits( /*chunkSize, */ make([]byte, 100))
+	fb := NewFuzzbits(chunkSize, make([]byte, 100))
 	for _, N := range moduli {
 		differentPossibleOutputs *= N
 
@@ -126,7 +135,7 @@ func calcDupePct(chunkSize int, moduli []int, getbits func([]byte, int), numRoun
 	numSamples := differentPossibleInputs * numRounds
 	for i := 0; i < numSamples; i++ {
 		getbits(input, i)
-		fb := NewFuzzbits( /*chunkSize, */ input)
+		fb := NewFuzzbits(chunkSize, input)
 		choice := 0
 		for _, N := range moduli {
 			choice = choice*N + fb.Intn(N)

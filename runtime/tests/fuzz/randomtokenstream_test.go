@@ -53,15 +53,15 @@ func (x *BigSetOfHashes) AddHash(hash uint64) bool {
 }
 
 func mkRandomTokenStream(data []byte) lexer.TokenStream {
-	return &RandomTokenStream{Fuzzbits: NewFuzzbits(data)}
+	return &RandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}
 }
 
 func mkSimpleRandomTokenStream(data []byte) lexer.TokenStream {
-	return &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(data)}
+	return &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}
 }
 
 func mkSimpleRandomTokenStreamNOPRAGMAS(data []byte) lexer.TokenStream {
-	return &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(data), NoPragmas: true}
+	return &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(8, data), NoPragmas: true}
 }
 
 func TestRandomTokenStreams(t *testing.T) {

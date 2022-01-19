@@ -67,7 +67,7 @@ func runRandomTokenStreamSample(data []byte) int {
 	reproducer := fmt.Sprintf("runRandomTokenStreamSample(%#v)", data)
 	stream := &lexer.CodeGatheringTokenStream{
 		Delegate: &lexer.AutoSpacingTokenStream{
-			Delegate: &RandomTokenStream{Fuzzbits: NewFuzzbits(data)}}}
+			Delegate: &RandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}}}
 	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
@@ -75,7 +75,7 @@ func runSimpleRandomTokenStreamSample(data []byte) int {
 	reproducer := fmt.Sprintf("runSimpleRandomTokenStreamSample(%#v)", data)
 	stream := &lexer.CodeGatheringTokenStream{
 		Delegate: &lexer.AutoSpacingTokenStream{
-			Delegate: &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(data)}}}
+			Delegate: &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}}}
 	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
