@@ -53,6 +53,13 @@ func sampleId(data []byte) string {
 	return fmt.Sprintf("%x", x.Sum([]byte{}))
 }
 
+func outputId(code string) string {
+	if len(code) == 0 {
+		return "0"
+	}
+	return sampleId([]byte(code))
+}
+
 func runByteSample(data []byte) int {
 	reproducer := fmt.Sprintf("runByteSample(%#v)", data)
 	return runStreamSample(sampleId(data), reproducer, lexer.Lex(strings.TrimSpace(string(data))))
@@ -83,6 +90,7 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 	SetMessageToDumpOnUnexpectedExit(reproducer)
 	defer SetMessageToDumpOnUnexpectedExit("")
 
+	code := ""
 	currentState := ""
 	runId := rand.Int31()
 
@@ -93,7 +101,7 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 		timeout.Cancel()
 		if FUZZSTATS {
 			currentState = s
-			msg := fmt.Sprintf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, "crashed")
+			msg := fmt.Sprintf("\nSTAT %s %08x %s %s %s\n", sampleId, runId, outputId(code), currentState, "crashed")
 			msg += fmt.Sprintf("CRASH %s %s\n", sampleId, reproducer)
 			SetMessageToDumpOnUnexpectedExit(msg)
 		}
@@ -101,7 +109,7 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 			if !FUZZSTATS {
 				return
 			}
-			msg := fmt.Sprintf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, "timeout")
+			msg := fmt.Sprintf("\nSTAT %s %08x %s %s %s\n", sampleId, runId, outputId(code), currentState, "timeout")
 			msg += fmt.Sprintf("TIMEOUT %s %s\n", sampleId, reproducer)
 			fmt.Println(msg)
 		})
@@ -114,7 +122,7 @@ func runStreamSample(sampleId string, reproducer string, stream lexer.TokenStrea
 		}
 		if FUZZSTATS {
 			res := map[int]string{-1: "invalid", 0: "err", 1: "ok", 99999: "panic"}[rc]
-			fmt.Printf("\nSTAT %s %08x %s %s\n", sampleId, runId, currentState, res)
+			fmt.Printf("\nSTAT %s %08x %s %s %s\n", sampleId, runId, outputId(code), currentState, res)
 			if res == "panic" {
 				fmt.Printf("PANIC %s %s\n", sampleId, reproducer)
 			}

@@ -101,11 +101,21 @@ fuzzstats: export FUZZTIMEOUT=2500
 fuzzstats: export FUZZTIMEOUT_generating=1600
 fuzzstats: export FUZZTIMEOUT_parsing=400
 fuzzstats: STATFILTER = | awk '/^(PANIC|CRASH|FUZZDUMP)/ { print } \
-  /^STAT/ { total++; outcomes[$$4"-"$$5]++ ; sampleids[$$2]++ } END { \
-  for (k in outcomes) { printf "%s %2.2f%%\n", k, 100.0*outcomes[k]/(1.0+total) } \
-  for (k in sampleids) { if (sampleids[k] > 1) dupes++ } \
-  printf "duplicate inputs %2.2f%% (%d out of %d total)\n", 100.0*dupes/(1.0+total), dupes+0, total+0 } \
-' | tee $@.tmp && mv $@.tmp $@.fuzzstats
+  /^STAT/ { \
+    inputId = $$2 ; runId = $$3 ; outputId = $$4 ; state = $$5 ; result = $$6 ; \
+    total++; \
+    outcomes[state"-"result]++ ; \
+    inputIds[inputId]++ ; \
+    vvvv="only if nonempty and not already counted and parse succeeded"; \
+    if (outputId != "0" && inputIds[inputId] == 1 && state != "generating" && state != "parsing") \
+      outputIds[outputId]++ \
+  } END { \
+    for (k in outcomes) { printf "%s %2.2f%%\n", k, 100.0*outcomes[k]/(1.0+total) } \
+    for (k in inputIds) { totalIns += inputIds[k] ; inDupes += inputIds[k] - 1 } \
+    for (k in outputIds) { totalOuts += outputIds[k] ; outDupes += outputIds[k] - 1 } \
+    printf "duplicate inputs %2.2f%% (%d out of %d total)\n", 100.0*inDupes/(1.0+totalIns), inDupes+0, totalIns+0 ; \
+    printf "duplicate outpts %2.2f%% (%d out of %d total)\n", 100.0*outDupes/(1.0+totalOuts), outDupes+0, totalOuts+0 ; \
+  }' | tee $@.tmp && mv $@.tmp $@.fuzzstats
 
 FUZZTIME ?= 5s
 FUZZPCKG = github.com/onflow/cadence/$(dir $@)
