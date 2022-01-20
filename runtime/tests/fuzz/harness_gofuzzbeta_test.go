@@ -23,10 +23,13 @@ package fuzz
 
 import t "testing"
 
+type chunkedFunction8 func(int, []byte) int
+
 func ffb(r func([]byte) int) func(*t.T, []byte) { return func(_ *t.T, d []byte) { r(d) } }
 func ffs(r func(string) int) func(*t.T, string) { return func(_ *t.T, d string) { r(d) } }
+func ff8(r chunkedFunction8) func(*t.T, []byte) { return func(_ *t.T, d []byte) { r(8, d) } }
 
 func FuzzRandomBytes(f *t.F)             { f.Fuzz(ffb(runByteSample)) }
 func FuzzRandomStrings(f *t.F)           { f.Fuzz(ffs(runStringSample)) }
-func FuzzRandomTokenStream(f *t.F)       { f.Fuzz(ffb(runRandomTokenStreamSample)) }
-func FuzzSimpleRandomTokenStream(f *t.F) { f.Fuzz(ffb(runSimpleRandomTokenStreamSample)) }
+func FuzzRandomTokenStream(f *t.F)       { f.Fuzz(ff8(runRandomTokenStreamSample)) }
+func FuzzSimpleRandomTokenStream(f *t.F) { f.Fuzz(ff8(runSimpleRandomTokenStreamSample)) }

@@ -89,8 +89,10 @@ fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomBytes-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomStrings-gofuzzbeta)
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzRandomTokenStream-gofuzzbeta)
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzRandomTokenStream-dvyukov)
+fuzz:                    ./runtime/tests/fuzz/FuzzRandomTokenStream-enumerative
 fuzz: $(if $(GOFUZZBETA),./runtime/tests/fuzz/FuzzSimpleRandomTokenStream-gofuzzbeta)
 fuzz: $(if $(GOFUZZDVYU),./runtime/tests/fuzz/FuzzSimpleRandomTokenStream-dvyukov)
+fuzz:                    ./runtime/tests/fuzz/FuzzSimpleRandomTokenStream-enumerative
 
 .PHONY: fuzzstats
 fuzzstats: fuzz
@@ -121,15 +123,25 @@ FUZZTIME ?= 5s
 FUZZPCKG = github.com/onflow/cadence/$(dir $@)
 FUZZFUNC = $(notdir $*)
 
-%-gofuzzbeta:
+WHILE_FUZZTIME_REMAINS := \
 	RUNUNTIL=$$(($$(date +%s) + $(subst s,,$(FUZZTIME)))); \
 	while true ; do TIMELEFT=$$((RUNUNTIL - $$(date +%s))); \
 	test $$TIMELEFT -gt 0 || break; \
+
+%-gofuzzbeta:
+	$(WHILE_FUZZTIME_REMAINS) \
 	go test -run=NONE \
 	  -tags=gofuzzbeta \
 	  -test.parallel=$(J) \
 	  -test.fuzztime $${TIMELEFT}s \
 	  -fuzz=$(FUZZFUNC) $(FUZZPCKG) ; done $(STATFILTER)
+%-enumerative:
+	$(WHILE_FUZZTIME_REMAINS) \
+	FUZZTIME=$${TIMELEFT} \
+	go test \
+	  -test.v \
+	  -test.parallel=$(J) \
+	  -run=Test$(FUZZFUNC)Enumeratively $(FUZZPCKG) ; done $(STATFILTER)
 %-dvyukov.zip:
 	go-fuzz-build -o $@ \
 	  -func $(FUZZFUNC) $(FUZZPCKG)

@@ -22,5 +22,5 @@
 package fuzz
 
 func FuzzRandomBytes(data []byte) int             { return runByteSample(data) }
-func FuzzRandomTokenStream(data []byte) int       { return runRandomTokenStreamSample(data) }
-func FuzzSimpleRandomTokenStream(data []byte) int { return runSimpleRandomTokenStreamSample(data) }
+func FuzzRandomTokenStream(data []byte) int       { return runRandomTokenStreamSample(8, data) }
+func FuzzSimpleRandomTokenStream(data []byte) int { return runSimpleRandomTokenStreamSample(8, data) }

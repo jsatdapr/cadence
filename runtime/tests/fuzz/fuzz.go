@@ -70,19 +70,19 @@ func runStringSample(code string) (rc int) {
 	return runStreamSample(sampleId([]byte(code)), reproducer, lexer.Lex(code))
 }
 
-func runRandomTokenStreamSample(data []byte) int {
-	reproducer := fmt.Sprintf("runRandomTokenStreamSample(%#v)", data)
+func runRandomTokenStreamSample(chunkSize int, data []byte) int {
+	reproducer := fmt.Sprintf("runRandomTokenStreamSample(%d, %#v)", chunkSize, data)
 	stream := &lexer.CodeGatheringTokenStream{
 		Delegate: &lexer.AutoSpacingTokenStream{
-			Delegate: &RandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}}}
+			Delegate: &RandomTokenStream{Fuzzbits: NewFuzzbits(chunkSize, data)}}}
 	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
-func runSimpleRandomTokenStreamSample(data []byte) int {
-	reproducer := fmt.Sprintf("runSimpleRandomTokenStreamSample(%#v)", data)
+func runSimpleRandomTokenStreamSample(chunkSize int, data []byte) int {
+	reproducer := fmt.Sprintf("runSimpleRandomTokenStreamSample(%d, %#v)", chunkSize, data)
 	stream := &lexer.CodeGatheringTokenStream{
 		Delegate: &lexer.AutoSpacingTokenStream{
-			Delegate: &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(8, data)}}}
+			Delegate: &SimpleRandomTokenStream{Fuzzbits: NewFuzzbits(chunkSize, data)}}}
 	return runStreamSample(sampleId(data), reproducer, stream)
 }
 
