@@ -20,6 +20,7 @@ package fuzz
 
 import (
 	"fmt"
+	"math/big"
 	"math/bits"
 )
 
@@ -36,6 +37,8 @@ type defaultFuzzbits struct {
 func NewFuzzbits(chunkSize int, data []byte) Fuzzbits {
 	if chunkSize == 8 {
 		return &defaultFuzzbits{data: data}
+	} else if chunkSize == 0 {
+		return NewBignumFuzzbits(data)
 	} else {
 		return NewChunkedFuzzbits(chunkSize, data)
 	}
@@ -126,4 +129,46 @@ func (r *chunkedFuzzbits) current() uint64 {
 		result |= uint64(r.data[i])
 	}
 	return result
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+// modular bignums: 0 wasted bits, 0 dupes, but unfriendly to naive coverage-based harnesses.
+//
+type bignumFuzzbits struct {
+	mid   *big.Rat
+	max   *big.Rat
+	extra int
+}
+
+func NewBignumFuzzbits(data []byte) Fuzzbits {
+	numFuzzbits := uint(len(data) * 8)
+	max := new(big.Rat).SetInt(new(big.Int).Lsh(big.NewInt(1), numFuzzbits+1))
+	mid := new(big.Rat).SetInt(new(big.Int).SetBytes(data))
+	return &bignumFuzzbits{mid: mid, max: max}
+}
+
+func (r *bignumFuzzbits) BitsLeft() int { // TODO should return float64 probably
+	return r.max.Num().BitLen() - r.max.Denom().BitLen() // approximate Ceil(Log2(max))
+}
+
+func (r *bignumFuzzbits) Intn(n int) int {
+	if n == 1 {
+		return 0
+	}
+	if n <= 0 {
+		panic(fmt.Errorf("n %d, nl %d", n, r.BitsLeft()))
+	}
+	if n == 1 {
+		return 0
+	}
+	if r.BitsLeft() <= 0 {
+		r.extra++
+		return r.extra % n
+	}
+	r.max.Quo(r.max, big.NewRat(int64(n), 1))
+	answerIsh := new(big.Rat).Quo(r.mid, r.max)
+	answer := new(big.Int).Div(answerIsh.Num(), answerIsh.Denom()).Int64()
+	leftover := new(big.Rat).Mul(big.NewRat(answer, 1), r.max)
+	r.mid.Sub(r.mid, leftover)
+	return int(answer)
 }

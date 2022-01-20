@@ -22,17 +22,46 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"math/big"
 	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+func TestThatBignumFuzzbitsWorkAsExpected(t *testing.T) {
+	millisPerYear := 365 * 24 * 60 * 60 * 1000
+
+	yearday, hour, minute, second, milliseconds := 0, 17, 23, 59, 123
+	pointInTime := 0 +
+		yearday*24*60*60*1000 +
+		hour /**/ *60*60*1000 +
+		minute /* */ *60*1000 +
+		second /*    */ *1000 + milliseconds
+
+	mid := big.NewRat(int64(pointInTime), 1)
+	max := big.NewRat(int64(millisPerYear), 1)
+	fuzzbits := bignumFuzzbits{mid: mid, max: max}
+	assert.NotZero(t, fuzzbits.BitsLeft())
+	assert.Equal(t, 0, fuzzbits.Intn(365))
+	assert.Equal(t, 17, fuzzbits.Intn(24))
+	assert.Equal(t, 23, fuzzbits.Intn(60))
+	assert.Equal(t, 59, fuzzbits.Intn(60))
+	assert.Equal(t, 123, fuzzbits.Intn(1000))
+	assert.Zero(t, fuzzbits.BitsLeft())
+	// when fuzzbits run out, you could just return infinite 0 and call that sensible.
+	// unfortunately, decision-based generators are usually recursive, and infinite 0
+	// ends in stack overflow.  instead return infinite incrememnt, and hope that helps.
+	for j := 0; j < 12345; j++ {
+		assert.Equal(t, j, fuzzbits.Intn(j+1))
+	}
+}
+
 // Fuzzing tools often find new samples by simply appending
 // bytes to the old samples.  Assert here that adding new bytes
 // doesn't change the output, until all the old output is used up.
 func TestThatFuzzbitsCanBeAppendedTo(t *testing.T) {
-	for chunkSize := 1; chunkSize <= 17; chunkSize++ {
+	for chunkSize := 0; chunkSize <= 17; chunkSize++ {
 		testThatFuzzbitsCanBeAppendedTo(t, chunkSize, rand.Int63())
 	}
 }
@@ -59,7 +88,8 @@ func testThatFuzzbitsCanBeAppendedTo(t *testing.T, chunkSize int, seed int64) {
 }
 
 // consuming fuzzbits in chunks (even 1 bit) wastes bits and gives duplicate outputs.
-// i.e. waste 1 bit: 50% dupes, 2 bits 75% dupes, 3 bits 87.5% ... etc.
+// (and that modular bignum fuzzbits waste 0 bits, giving zero duplicate outputs)
+// i.e. waste 0bits: 0% dupe, 0.5b 25% dupes, 1b 50% dupes, 2b 75% dupes ... etc.
 func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -79,7 +109,7 @@ func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
 		"pik2cards": {52, 51},
 		"furlongft": {10, 22, 3},
 	} {
-		for chunkSize := 1; chunkSize <= 8; chunkSize++ {
+		for chunkSize := 0; chunkSize <= 8; chunkSize++ {
 			accuracy := 0.000001 // enumerating every possible input one time, gives precise answer
 			expected, actual := calcDupePct(chunkSize, moduli, enumerative, func(float64) int { return 1 })
 			assert.InDelta(t, expected, actual, accuracy, "enum %s (%d)", name, chunkSize)
@@ -88,6 +118,10 @@ func TestThatChunkedFuzzbitsProduceMostlyDuplicates(t *testing.T) {
 			numRounds := func(waste float64) int { return int((100. / accuracy) / (waste * waste / math.E)) }
 			expected, actual = calcDupePct(chunkSize, moduli, rndSampling, numRounds)
 			assert.InDelta(t, expected, actual, accuracy, "rand %s (%d) %d", name, chunkSize, numRounds)
+
+			if chunkSize == 0 { // modular bignums waste zero bits...
+				assert.Zero(t, expected) // ... so expect zero dupes.
+			}
 		}
 	}
 }
@@ -100,6 +134,10 @@ func calcDupePct(chunkSize int, moduli []int, getbits func([]byte, int), numRoun
 	fb := NewFuzzbits(chunkSize, make([]byte, 100))
 	for _, N := range moduli {
 		differentPossibleOutputs *= N
+
+		if chunkSize == 0 {
+			continue
+		}
 
 		numFractionalBitsNeededToSelectN := math.Log2(float64(N))
 		numIntegralBitsNeededToSelectN := int(math.Ceil(numFractionalBitsNeededToSelectN))
