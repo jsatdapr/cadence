@@ -1189,7 +1189,7 @@ func TestRuntimeBatchMintAndTransfer(t *testing.T) {
               transaction {
 
                   prepare(signer: AuthAccount) {
-                      let collection <- Test.batchMint(count: 1000)
+                      let collection <- Test.batchMint(count: 77)
 
                       log(collection.getIDs())
 
