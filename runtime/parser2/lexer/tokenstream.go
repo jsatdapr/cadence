@@ -18,11 +18,53 @@
 
 package lexer
 
+import "fmt"
+
 type TokenStream interface {
 	// Next consumes and returns one Token. If there are no tokens remaining, it returns Token{TokenEOF}
 	Next() Token
-	Cursor() int
-	Revert(cursor int)
 	// Input returns the whole input as source code
 	Input() string
+}
+
+type SeekableTokenStream interface {
+	TokenStream
+	Cursor() int
+	Revert(cursor int)
+}
+
+func NewSeekableTokenStream(delegate TokenStream) SeekableTokenStream {
+	if s, ok := delegate.(SeekableTokenStream); ok {
+		return s
+	}
+	return nil // TODO &delegatingSeekableTokenStream{delegate: delegate}
+}
+
+type seekableTokenStream struct {
+	// the offset in the token stream
+	cursor int
+	// the tokens of the stream
+	tokens []Token
+}
+
+func (l *seekableTokenStream) Next() Token {
+	if l.cursor < len(l.tokens) {
+		t := l.tokens[l.cursor]
+		if t.Type != TokenEOF {
+			l.cursor++
+		}
+		return t
+	}
+	panic("unimplemented")
+}
+
+func (l *seekableTokenStream) Cursor() int {
+	return l.cursor
+}
+
+func (l *seekableTokenStream) Revert(cursor int) {
+	if cursor > l.cursor {
+		panic(fmt.Errorf("illegal forward revert %d, %d", cursor, l.cursor))
+	}
+	l.cursor = cursor
 }

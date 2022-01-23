@@ -32,6 +32,7 @@ type position struct {
 }
 
 type lexer struct {
+	seekableTokenStream
 	// the entire input string
 	input string
 	// the start offset of the current word in the current line
@@ -48,37 +49,15 @@ type lexer struct {
 	canBackup bool
 	// the start position of the current word
 	startPos position
-	// the offset in the token stream
-	cursor int
-	// the tokens of the stream
-	tokens     []Token
-	tokenCount int
 }
 
-var _ TokenStream = &lexer{}
-
-func (l *lexer) Next() Token {
-	if l.cursor >= l.tokenCount {
-		return l.tokens[l.tokenCount-1]
-	}
-	token := l.tokens[l.cursor]
-	l.cursor++
-	return token
-}
+var _ SeekableTokenStream = &lexer{}
 
 func (l *lexer) Input() string {
 	return l.input
 }
 
-func (l *lexer) Cursor() int {
-	return l.cursor
-}
-
-func (l *lexer) Revert(cursor int) {
-	l.cursor = cursor
-}
-
-func Lex(input string) TokenStream {
+func Lex(input string) SeekableTokenStream {
 	l := &lexer{
 		input:         input,
 		startPos:      position{line: 1},
@@ -198,7 +177,6 @@ func (l *lexer) emit(ty TokenType, val interface{}, rangeStart ast.Position, con
 	}
 
 	l.tokens = append(l.tokens, token)
-	l.tokenCount = len(l.tokens)
 
 	if consume {
 		l.startOffset = l.endOffset

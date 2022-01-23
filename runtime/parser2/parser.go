@@ -37,7 +37,7 @@ const lowestBindingPower = 0
 
 type parser struct {
 	// tokens is a stream of tokens from the lexer
-	tokens lexer.TokenStream
+	tokens lexer.SeekableTokenStream
 	// current is the current token being parsed.
 	current lexer.Token
 	// errors are the parsing errors encountered during parsing
@@ -61,7 +61,7 @@ func Parse(input string, parse func(*parser) interface{}) (result interface{}, e
 }
 
 func ParseTokenStream(tokens lexer.TokenStream, parse func(*parser) interface{}) (result interface{}, errs []error) {
-	p := &parser{tokens: tokens}
+	p := &parser{tokens: lexer.NewSeekableTokenStream(tokens)}
 
 	defer func() {
 		if r := recover(); r != nil {
