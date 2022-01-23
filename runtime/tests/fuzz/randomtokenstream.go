@@ -20,6 +20,7 @@ package fuzz
 
 import (
 	"github.com/onflow/cadence/runtime/errors"
+	"github.com/onflow/cadence/runtime/parser2"
 	"github.com/onflow/cadence/runtime/parser2/lexer"
 )
 
@@ -28,6 +29,7 @@ type RandomTokenStream struct {
 	Data        []byte
 	dataIndex   int
 	accumulator int
+	sentKeyword bool
 }
 
 func (ts *RandomTokenStream) Input() string {
@@ -67,6 +69,21 @@ func (ts *RandomTokenStream) Next() lexer.Token {
 		return res
 	}
 	ts.nextIsSpace = true
+
+	if !ts.sentKeyword {
+		ts.sentKeyword = true
+		firstWhat := ts.intn(4)
+		t := lexer.Token{Type: lexer.TokenIdentifier}
+		if firstWhat <= 1 { // 50% of the time, keyword
+			t.Value = parser2.Keywords[ts.intn(len(parser2.Keywords))]
+		} else if firstWhat == 2 { // 25%, start with some other identifier
+			ids := []string{"a", "b", "c", "d"}
+			t.Value = ids[ts.intn(len(ids))]
+		} else if firstWhat == 3 { // 25%, start with a pragma
+			t.Type = lexer.TokenPragma
+		}
+		return t
+	}
 
 	min := int(lexer.TokenBinaryIntegerLiteral)
 	max := int(lexer.TokenPragma)

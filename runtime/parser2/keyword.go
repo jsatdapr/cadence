@@ -18,6 +18,52 @@
 
 package parser2
 
+var Keywords = []string{
+	keywordIf,
+	keywordElse,
+	keywordWhile,
+	keywordBreak,
+	keywordContinue,
+	keywordReturn,
+	keywordTrue,
+	keywordFalse,
+	keywordNil,
+	keywordLet,
+	keywordVar,
+	keywordFun,
+	keywordAs,
+	keywordCreate,
+	keywordDestroy,
+	keywordFor,
+	keywordIn,
+	keywordEmit,
+	keywordAuth,
+	keywordPriv,
+	keywordPub,
+	keywordAccess,
+	keywordSet,
+	keywordAll,
+	keywordSelf,
+	keywordInit,
+	keywordContract,
+	keywordAccount,
+	keywordImport,
+	keywordFrom,
+	keywordPre,
+	keywordPost,
+	keywordEvent,
+	keywordStruct,
+	keywordResource,
+	keywordInterface,
+	KeywordTransaction,
+	keywordPrepare,
+	keywordExecute,
+	keywordCase,
+	keywordSwitch,
+	keywordDefault,
+	keywordEnum,
+}
+
 const (
 	keywordIf          = "if"
 	keywordElse        = "else"
