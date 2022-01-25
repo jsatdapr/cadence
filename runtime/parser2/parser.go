@@ -214,7 +214,7 @@ func (p *parser) acceptBuffered() {
 	bufferedErrors := p.bufferedErrors[lastIndex]
 	p.bufferedErrors[lastIndex] = nil
 	p.bufferedErrors = p.bufferedErrors[:lastIndex]
-	if len(bufferedErrors) > 0 {
+	if len(bufferedErrors) > 1 {
 		p.bufferedErrors[lastIndex-1] = append(
 			p.bufferedErrors[lastIndex-1],
 			bufferedErrors...,
