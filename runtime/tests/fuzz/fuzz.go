@@ -26,8 +26,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync/atomic"
-	"time"
 
 	"github.com/onflow/cadence/runtime/interpreter"
 	"github.com/onflow/cadence/runtime/parser2"
@@ -235,48 +233,22 @@ v----------------------v
 
 /////////////////////////////////////////////////////////////////////////////
 
-type Timeout struct {
-	id *int32
+// so basically, just add a looping loop which sleeps for some ms
+// i.e. it fires every x nilliseconds, no matter what.
+// when it fires, it checks is time.Now() > deadline?
+// if so, go, call most recent callback.
+// theres only one deadline
+// all that the timers do is set the deadline into the future
+// if cancel, set it to 2038 or whatever
+
+type Deadline int64
+
+func newTimeout() Deadline {
+	return -1
 }
 
-const _TIMEDOUT = -1
-
-func newTimeout() Timeout {
-	id_ := int32(0)
-	return Timeout{id: &id_}
+func (t Deadline) Cancel() {
 }
 
-func (t Timeout) Cancel() {
-	was := atomic.LoadInt32(t.id)
-	if was != _TIMEDOUT {
-		atomic.CompareAndSwapInt32(t.id, was, 0)
-	}
-}
-
-func (t Timeout) Start(ms int, callback func()) {
-	if ms == 0 {
-		return
-	}
-	if ms < 0 {
-		panic(fmt.Errorf("invalid timeout: %d", ms))
-	}
-	timerId := rand.Int31()
-	if !atomic.CompareAndSwapInt32(t.id, 0, timerId) {
-		panic("failed to start timer")
-	}
-	go func() {
-		time.Sleep(time.Duration(ms) * time.Millisecond)
-		if atomic.CompareAndSwapInt32(t.id, timerId, _TIMEDOUT) {
-			callback()
-			os.Exit(123)
-		}
-	}()
-}
-
-func (t Timeout) TimedOut() bool {
-	return atomic.LoadInt32(t.id) <= _TIMEDOUT
-}
-
-func (t Timeout) Dispose() {
-	t.Cancel()
+func (t Deadline) Start(ms int, callback func()) {
 }
